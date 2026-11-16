@@ -8,7 +8,7 @@ import {
 } from "../database/models/attributesAndIncludes";
 import { checkAndDeleteIdToken } from "../checkAndDeleteIdToken";
 import { IdType } from "shared/IdType";
-import { hasPrivilegedUserDataAccess } from "shared/Role";
+import { isPasswordProhibited } from "shared/Role";
 import { whiteLabel } from "shared/WhiteLabel";
 import WeChatProvider from "./WeChatProvider";
 import YuantuSsoProvider from "./YuantuSsoProvider";
@@ -31,11 +31,11 @@ const providers: NextAuthOptions["providers"] = [
         include: userInclude,
       });
       // Privileged users are prohibited from logging in with a password,
-      // except on the demo site where demo accounts use password login.
+      // except on the demo site or in local development.
       if (
         !user ||
         !user.password ||
-        (whiteLabel !== "demo" && hasPrivilegedUserDataAccess(user.roles))
+        (whiteLabel !== "demo" && isPasswordProhibited(user.roles))
       ) {
         return null;
       }

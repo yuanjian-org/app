@@ -37,8 +37,7 @@ Data format:
   reply, `replyTo` is the name of the replied-to author, and
   the reply's parent is the latest preceding post in the same
   thread written by that author. Optional `reactions` is an
-  array of `{emoji, users}` objects using allowed
-  ShudongEmoji values from src/shared/Shudong.ts.
+  array of `{emoji, users}` objects.
 
 Timestamps:
   Posts are given realistic creation times as if they had
@@ -72,13 +71,6 @@ from typing import Any, Dict, List, NoReturn, Optional, Set, Tuple
 from zoneinfo import ZoneInfo
 import psycopg2  # type: ignore
 
-
-# Keep in sync with shudongEmojis in src/shared/Shudong.ts.
-SHUDONG_EMOJIS = {
-  "🤗", "💖", "💪", "👏", "🙏", "🤝", "😊", "🥰",
-  "😄", "😂", "🙌", "👍", "🥺", "😭", "😅", "🤔",
-  "😮", "😎", "🎉", "✨", "🌟", "🌹", "🍀", "💡",
-}
 
 # Time zone used to model when users are active.
 ACTIVITY_TZ = ZoneInfo("Asia/Shanghai")
@@ -273,10 +265,9 @@ def validate_reactions(
   """Validate emoji reactions on a single post."""
   seen_emojis: Set[str] = set()
   for spec in reactions:
-    if spec.emoji not in SHUDONG_EMOJIS:
+    if not spec.emoji.strip():
       fail(
-        f"Invalid emoji '{spec.emoji}' on"
-        f" post #{post_num} in {where}."
+        f"Empty emoji on post #{post_num} in {where}."
       )
     if spec.emoji in seen_emojis:
       fail(

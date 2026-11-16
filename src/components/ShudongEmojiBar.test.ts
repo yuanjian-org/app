@@ -199,5 +199,47 @@ describe("ShudongEmojiBar", () => {
       expect(changes).to.deep.equal(["加油🎉"]);
       expect(trigger.getAttribute("aria-expanded")).to.equal("false");
     });
+
+    it("supports pill trigger variant while blocking anchor clicks", () => {
+      let anchorClicks = 0;
+      const selected: string[] = [];
+
+      const { getByLabelText, queryByLabelText } = rtl.render(
+        React.createElement(
+          chakra.ChakraProvider,
+          null,
+          React.createElement(
+            "a",
+            {
+              href: "/shudong/456",
+              onClick: () => {
+                anchorClicks += 1;
+              },
+            },
+            React.createElement(mod.ShudongEmojiPopover, {
+              onSelect: (emoji) => {
+                selected.push(emoji);
+              },
+              ariaLabel: "添加表情回应",
+              variant: "pill",
+            }),
+          ),
+        ),
+      );
+
+      const trigger = getByLabelText("添加表情回应");
+      expect(trigger.getAttribute("aria-expanded")).to.equal("false");
+      expect(queryByLabelText("选择表情 👍")).to.equal(null);
+
+      const notCancelled = rtl.fireEvent.click(trigger);
+      expect(notCancelled).to.equal(false);
+      expect(trigger.getAttribute("aria-expanded")).to.equal("true");
+      expect(anchorClicks).to.equal(0);
+
+      rtl.fireEvent.click(getByLabelText("选择表情 👍"));
+      expect(selected).to.deep.equal(["👍"]);
+      expect(trigger.getAttribute("aria-expanded")).to.equal("false");
+      expect(anchorClicks).to.equal(0);
+    });
   });
 });

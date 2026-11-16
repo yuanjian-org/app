@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { TRPCError } from "@trpc/server";
 import { Transaction } from "sequelize";
 import AdmZip from "adm-zip";
 import {
@@ -323,6 +324,17 @@ describe("menteeData download functions", () => {
       expect(mentorshipTxt).to.include("Second meeting summary");
       expect(mentorshipTxt).to.not.include(mentee.name);
     });
+
+    it("should throw NOT_FOUND when mentee does not exist", async () => {
+      const missingId = "00000000-0000-4000-8000-000000000000";
+      try {
+        await downloadMenteeDataImpl(missingId, transaction);
+        expect.fail("Expected TRPCError NOT_FOUND");
+      } catch (err) {
+        expect(err).to.be.instanceOf(TRPCError);
+        expect((err as TRPCError).code).to.equal("NOT_FOUND");
+      }
+    });
   });
 
   describe("downloadMenteeTranscriptsImpl", () => {
@@ -463,6 +475,37 @@ describe("menteeData download functions", () => {
 
       // Meeting 2 fallback summary content
       expect(txtContent).to.include("Meeting 2 summary for fallback.");
+    });
+
+    it("should throw NOT_FOUND when mentee does not exist", async () => {
+      const missingId = "00000000-0000-4000-8000-000000000000";
+      try {
+        await downloadMenteeTranscriptsImpl(missingId, transaction);
+        expect.fail("Expected TRPCError NOT_FOUND");
+      } catch (err) {
+        expect(err).to.be.instanceOf(TRPCError);
+        expect((err as TRPCError).code).to.equal("NOT_FOUND");
+      }
+    });
+
+    it("should use 00 year prefix when menteeApplication is null", async () => {
+      const mentee = await db.User.create(
+        {
+          email: `mentee-noyear-${Date.now()}@test.com`,
+          name: "无届学生",
+          roles: ["Mentee"],
+          menteeApplication: null,
+          menteeStatus: "现届学子",
+        },
+        { transaction },
+      );
+
+      const result = await downloadMenteeTranscriptsImpl(
+        mentee.id,
+        transaction,
+      );
+
+      expect(result.filename).to.match(/^mentee_transcripts_00-\d{3}\.zip$/);
     });
   });
 });

@@ -46,6 +46,7 @@ import { cmdOrCtrlChar } from "macOrWin";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import { formatUserName } from "shared/strings/formatUserName";
 import MarkdownStyler from "./MarkdownStyler";
+import MarkdownSupport from "./MarkdownSupport";
 import { toast } from "react-toastify";
 import T from "components/T";
 import { UserLink } from "./UserChip";
@@ -55,6 +56,7 @@ import {
   ShudongEmojiBar,
   ShudongEmojiPopover,
 } from "./ShudongEmojiBar";
+import styles from "./ShudongPostItem.module.css";
 
 /**
  * Shared metadata header for Shudong questions and responses.
@@ -73,17 +75,23 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
     <HStack spacing={3} alignItems="center">
       {/* Omit hardcoded bg/color so Avatar computes a distinct color */}
       {/* from the full display name via the global Avatar theme. */}
-      <Avatar size="sm" name={authorName} />
-      <VStack spacing={0} align="start">
-        <HStack spacing={2} align="center">
+      <Avatar size="sm" boxSize={9} name={authorName} />
+      <VStack spacing={0.5} align="start">
+        <HStack spacing={2} align="center" wrap="wrap">
           {isAnon ? (
-            <Text fontWeight="bold" fontSize="sm" color="gray.600">
+            <Text
+              fontWeight="semibold"
+              fontSize="sm"
+              lineHeight="1.3"
+              color="gray.600"
+            >
               <T>{anonDisplayName}</T>
             </Text>
           ) : (
             <Text
-              fontWeight="bold"
+              fontWeight="semibold"
               fontSize="sm"
+              lineHeight="1.3"
               onClick={(e) => e.stopPropagation()}
             >
               <UserLink user={post.author!} />
@@ -104,44 +112,82 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
                 display="inline-flex"
               >
                 <Badge
-                  variant="outline"
+                  variant="subtle"
                   colorScheme="teal"
                   fontSize="xs"
+                  fontWeight="medium"
+                  textTransform="none"
+                  px={2}
+                  py="1px"
+                  borderRadius="full"
+                  borderWidth="1px"
+                  borderColor="teal.200"
+                  bg="teal.50"
+                  color="teal.700"
                   display="inline-flex"
                   alignItems="center"
                   cursor="pointer"
-                  _hover={{ bg: "teal.50" }}
+                  transition="all 0.15s ease"
+                  _hover={{ bg: "teal.100", borderColor: "teal.300" }}
                 >
-                  <T>导师</T> · <T>预约交流</T>
-                  <ChevronRightIcon boxSize={3.5} mr={-1} />
+                  <T>导师</T>
+                  <Text as="span" mx={1} color="teal.400" aria-hidden="true">
+                    ·
+                  </Text>
+                  <T>预约交流</T>
+                  <ChevronRightIcon boxSize={3.5} ml={0.5} mr={-0.5} />
                 </Badge>
               </Link>
             ) : (
-              <Badge variant="outline" colorScheme="teal" fontSize="xs">
+              <Badge
+                variant="subtle"
+                colorScheme="teal"
+                fontSize="xs"
+                fontWeight="medium"
+                textTransform="none"
+                px={2}
+                py="1px"
+                borderRadius="full"
+                borderWidth="1px"
+                borderColor="teal.200"
+                bg="teal.50"
+                color="teal.700"
+              >
                 <T>导师</T>
               </Badge>
             ))}
           {post.isAiGenerated && (
             <Tooltip label="AI 生成" hasArrow placement="top">
-              <span>
-                <Icon
-                  as={PiStarFourFill}
-                  boxSize={3.5}
-                  color="gray.400"
-                  aria-label="AI 生成"
-                />
-              </span>
+              <Box
+                as="span"
+                display="inline-flex"
+                alignItems="center"
+                color="gray.400"
+                cursor="help"
+                transition="color 0.15s ease"
+                _hover={{ color: "gray.600" }}
+              >
+                <Icon as={PiStarFourFill} boxSize={3.5} aria-label="AI 生成" />
+              </Box>
             </Tooltip>
           )}
           {/* Soft-deleted posts indicate deletion directly via content, */}
           {/* so no deleted label is shown. Edit badge is for active posts. */}
           {!post.isDeleted && post.lastEditedAt !== null && (
-            <Badge variant="subtle" colorScheme="gray" fontSize="xs">
+            <Badge
+              variant="subtle"
+              colorScheme="gray"
+              fontSize="xs"
+              fontWeight="normal"
+              px={2}
+              borderRadius="full"
+              color="gray.600"
+            >
               <T>已编辑</T>
             </Badge>
           )}
         </HStack>
-        <Text fontSize="xs" color="gray.500">
+        <Text fontSize="xs" color="gray.500" lineHeight="1.3">
           {prettifyDate(post.createdAt)}
         </Text>
       </VStack>
@@ -242,7 +288,7 @@ export function ShudongPostItem({
 
   // Toggle subscription optimistically
   const handleToggleSubscription = useCallback(
-    async (e: React.MouseEvent | React.KeyboardEvent) => {
+    async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       const nextState = !localIsSubscribed;
@@ -350,17 +396,36 @@ export function ShudongPostItem({
     !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
 
   const isQuestionNode = post.parentId === null || isRootQuestion;
+  const showReactionGroup = !post.isDeleted;
+  const showSubscribeAction = !post.isDeleted && isQuestionNode;
+  const showReplyAction = (isHomePage || !isRootQuestion) && !post.isDeleted;
+  const showThreadToggle =
+    (isHomePage || !isRootQuestion) && post.responseCount > 0;
+  const hasActionGroup =
+    showSubscribeAction || showReplyAction || showThreadToggle;
+  const showFooter = showReactionGroup || hasActionGroup;
 
   return (
     <Box
-      p={4}
+      px={{ base: 4, md: 5 }}
+      py={4}
       borderWidth="1px"
-      borderRadius="md"
+      borderColor="gray.200"
+      borderRadius="lg"
       bg="white"
       boxShadow="sm"
       w="100%"
+      transition="border-color 0.15s ease, box-shadow 0.15s ease"
+      _hover={
+        isHomePage
+          ? {
+              borderColor: "gray.300",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+            }
+          : undefined
+      }
     >
-      <Flex justify="space-between" align="start" mb={3}>
+      <Flex justify="space-between" align="start" mb={2.5}>
         <ShudongPostMetadata post={post} />
         {canEditOrDelete && !post.isDeleted && (
           <HStack spacing={1}>
@@ -418,24 +483,35 @@ export function ShudongPostItem({
               textareaRef={editInputRef}
             />
           )}
-          <HStack justify="end">
-            <Button size="sm" onClick={() => setIsEditing(false)}>
-              <T>取消</T>
-            </Button>
-            <Button
-              size="sm"
-              colorScheme="brand"
-              onClick={() => {
-                void handleSaveEdit();
-              }}
-              isLoading={isSubmittingEdit}
-            >
-              <T>保存</T>
-            </Button>
-          </HStack>
+          <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+            <MarkdownSupport
+              fontSize="sm"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <HStack spacing={2} ml="auto">
+              <Button size="sm" onClick={() => setIsEditing(false)}>
+                <T>取消</T>
+              </Button>
+              <Button
+                size="sm"
+                colorScheme="brand"
+                onClick={() => {
+                  void handleSaveEdit();
+                }}
+                isLoading={isSubmittingEdit}
+              >
+                <T>保存</T>
+              </Button>
+            </HStack>
+          </Flex>
         </VStack>
       ) : (
-        <Box mb={3}>
+        <Box
+          className={styles.postBody}
+          mb={showFooter ? 3 : 0}
+          color="gray.800"
+          lineHeight="1.7"
+        >
           {post.isDeleted ? (
             <Text color="gray.400" fontStyle="italic">
               <T>【该内容已被删除】</T>
@@ -446,123 +522,124 @@ export function ShudongPostItem({
         </Box>
       )}
 
-      <Flex
-        wrap="wrap"
-        columnGap={4}
-        rowGap={2}
-        align="center"
-        fontSize="sm"
-        color="gray.600"
-      >
-        {!post.isDeleted && (
-          <Flex
-            wrap="wrap"
-            gap={1.5}
-            align="center"
-            onClick={(e) => {
-              // Prevent card link wrapper on home page from intercepting
-              // reaction clicks
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            <ShudongEmojiPopover
-              onSelect={(emoji) => void handleToggleReaction(emoji)}
-              activeEmojis={activeEmojiSet}
-              ariaLabel="添加表情回应"
-              color="gray.600"
-            />
-            {localReactions.map((r) => (
-              <HStack
-                key={r.emoji}
-                as="button"
-                type="button"
-                spacing={1}
-                px={2}
-                py={0.5}
-                borderRadius="full"
-                borderWidth="1px"
-                bg={r.userHasReacted ? "blue.50" : "gray.50"}
-                borderColor={r.userHasReacted ? "blue.200" : "gray.200"}
-                color={r.userHasReacted ? "brand.600" : "gray.600"}
-                fontWeight={r.userHasReacted ? "semibold" : "normal"}
-                _hover={{ bg: r.userHasReacted ? "blue.100" : "gray.100" }}
-                aria-label={`回应 ${r.emoji} ${r.count}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  void handleToggleReaction(r.emoji);
-                }}
-              >
-                <Text as="span" fontSize="sm" lineHeight="1">
-                  {r.emoji}
-                </Text>
-                <Text as="span" fontSize="xs" lineHeight="1">
-                  {r.count}
-                </Text>
-              </HStack>
-            ))}
-          </Flex>
-        )}
-
-        {!post.isDeleted && isQuestionNode && (
-          <Text
-            display="flex"
-            alignItems="center"
-            cursor="pointer"
-            role="button"
-            tabIndex={0}
-            aria-label={localIsSubscribed ? "取消订阅" : "订阅问题"}
-            // No color/weight overrides: inherit the same style as 回复.
-            onClick={(e) => void handleToggleSubscription(e)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                void handleToggleSubscription(e);
-              }
-            }}
-          >
-            {/* Show filled bell when subscribed, outline bell otherwise. */}
-            <Icon
-              as={localIsSubscribed ? FaBell : FaRegBell}
-              mr={1}
-              boxSize={4}
-            />
-            <T>{localIsSubscribed ? "已订阅" : "订阅"}</T>
-          </Text>
-        )}
-
-        {/* Home page cards show reply/response buttons that route to
-            question page */}
-        {(isHomePage || !isRootQuestion) && (
-          <>
-            {!post.isDeleted && (
-              <Text
-                display="flex"
-                alignItems="center"
-                cursor="pointer"
-                role="button"
-                tabIndex={0}
-                aria-label="回复"
-                onClick={(e) => {
-                  if (isHomePage) {
-                    // Prevent card link wrapper from overriding query
-                    // parameter routing
+      {showFooter && (
+        <Flex
+          wrap="wrap"
+          columnGap={2.5}
+          rowGap={2}
+          align="center"
+          fontSize="sm"
+          color="gray.600"
+        >
+          {showReactionGroup && (
+            <Flex
+              wrap="wrap"
+              gap={1.5}
+              align="center"
+              onClick={(e) => {
+                // Prevent card link wrapper on home page from intercepting
+                // reaction clicks
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <ShudongEmojiPopover
+                onSelect={(emoji) => void handleToggleReaction(emoji)}
+                activeEmojis={activeEmojiSet}
+                ariaLabel="添加表情回应"
+                color="gray.500"
+                variant="pill"
+              />
+              {localReactions.map((r) => (
+                <HStack
+                  key={r.emoji}
+                  as="button"
+                  type="button"
+                  spacing={1}
+                  h="26px"
+                  px={2.5}
+                  borderRadius="full"
+                  borderWidth="1px"
+                  bg={r.userHasReacted ? "blue.50" : "gray.50"}
+                  borderColor={r.userHasReacted ? "blue.200" : "gray.200"}
+                  color={r.userHasReacted ? "brand.600" : "gray.600"}
+                  fontWeight={r.userHasReacted ? "semibold" : "normal"}
+                  transition="all 0.15s ease"
+                  _hover={{
+                    bg: r.userHasReacted ? "blue.100" : "gray.100",
+                    borderColor: r.userHasReacted ? "blue.300" : "gray.300",
+                  }}
+                  aria-label={`回应 ${r.emoji} ${r.count}`}
+                  onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    void router.push(`/shudong/${post.id}?focus=reply`);
-                  } else {
-                    setIsReplying((prev) => {
-                      const next = !prev;
-                      if (next) {
-                        // Focus textarea immediately after expanding
-                        setTimeout(() => replyInputRef.current?.focus(), 100);
-                      }
-                      return next;
-                    });
+                    void handleToggleReaction(r.emoji);
+                  }}
+                >
+                  <Text as="span" fontSize="sm" lineHeight="1">
+                    {r.emoji}
+                  </Text>
+                  <Text
+                    as="span"
+                    fontSize="xs"
+                    lineHeight="1"
+                    style={{ fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {r.count}
+                  </Text>
+                </HStack>
+              ))}
+            </Flex>
+          )}
+
+          {showReactionGroup && hasActionGroup && (
+            <Box h="14px" w="1px" bg="gray.200" aria-hidden="true" />
+          )}
+
+          {hasActionGroup && (
+            <HStack spacing={1} align="center" wrap="wrap">
+              {showSubscribeAction && (
+                <Button
+                  type="button"
+                  size="xs"
+                  h="26px"
+                  px={2}
+                  borderRadius="md"
+                  fontSize="sm"
+                  fontWeight="normal"
+                  variant="ghost"
+                  color="gray.600"
+                  _hover={{ bg: "gray.100", color: "gray.800" }}
+                  iconSpacing={1.5}
+                  leftIcon={
+                    <Icon
+                      as={localIsSubscribed ? FaBell : FaRegBell}
+                      boxSize={3.5}
+                    />
                   }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
+                  aria-label={localIsSubscribed ? "取消订阅" : "订阅问题"}
+                  onClick={(e) => void handleToggleSubscription(e)}
+                >
+                  <T>{localIsSubscribed ? "已订阅" : "订阅"}</T>
+                </Button>
+              )}
+
+              {showReplyAction && (
+                <Button
+                  type="button"
+                  size="xs"
+                  h="26px"
+                  px={2}
+                  borderRadius="md"
+                  fontSize="sm"
+                  fontWeight="normal"
+                  variant="ghost"
+                  color="gray.600"
+                  _hover={{ bg: "gray.100", color: "gray.800" }}
+                  iconSpacing={1.5}
+                  leftIcon={<ChatIcon boxSize={3.5} />}
+                  aria-label="回复"
+                  onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     if (isHomePage) {
@@ -571,53 +648,66 @@ export function ShudongPostItem({
                       setIsReplying((prev) => {
                         const next = !prev;
                         if (next) {
+                          // Focus textarea immediately after expanding
                           setTimeout(() => replyInputRef.current?.focus(), 100);
                         }
                         return next;
                       });
                     }
-                  }
-                }}
-              >
-                <ChatIcon mr={1} />
-                <T>回复</T>
-              </Text>
-            )}
+                  }}
+                >
+                  <T>回复</T>
+                </Button>
+              )}
 
-            {post.responseCount > 0 && (
-              <Button
-                size="xs"
-                // Match the "sm" font size of sibling action items
-                fontSize="sm"
-                variant="ghost"
-                leftIcon={
-                  showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
-                }
-                onClick={(e) => {
-                  if (isHomePage) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    void router.push(`/shudong/${post.id}`);
-                  } else {
-                    setShowChildResponses(!showChildResponses);
+              {showThreadToggle && (
+                <Button
+                  type="button"
+                  size="xs"
+                  h="26px"
+                  px={2}
+                  borderRadius="md"
+                  fontSize="sm"
+                  fontWeight="medium"
+                  variant="ghost"
+                  color="gray.700"
+                  _hover={{ bg: "gray.100", color: "gray.900" }}
+                  iconSpacing={1}
+                  rightIcon={
+                    isHomePage ? (
+                      <ChevronRightIcon boxSize={4} mr={-0.5} />
+                    ) : showChildResponses ? (
+                      <ChevronUpIcon boxSize={4} mr={-0.5} />
+                    ) : (
+                      <ChevronDownIcon boxSize={4} mr={-0.5} />
+                    )
                   }
-                }}
-              >
-                {showChildResponses
-                  ? "收起回复"
-                  : `${post.responseCount} 条回复`}
-              </Button>
-            )}
-          </>
-        )}
-      </Flex>
+                  onClick={(e) => {
+                    if (isHomePage) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void router.push(`/shudong/${post.id}`);
+                    } else {
+                      setShowChildResponses(!showChildResponses);
+                    }
+                  }}
+                >
+                  {showChildResponses
+                    ? "收起回复"
+                    : `${post.responseCount} 条回复`}
+                </Button>
+              )}
+            </HStack>
+          )}
+        </Flex>
+      )}
 
       {isReplying && (
         <VStack
           align="stretch"
-          spacing={2}
+          spacing={2.5}
           mt={3}
-          p={3}
+          p={3.5}
           bg="gray.50"
           borderRadius="md"
         >
@@ -631,34 +721,47 @@ export function ShudongPostItem({
               });
             }}
           />
-          <Textarea
-            ref={replyInputRef}
-            placeholder={
-              "写下你的回复" +
-              (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
-            }
-            value={replyMarkdown}
-            onChange={(e) => setReplyMarkdown(e.target.value)}
-            onKeyDown={(e) => {
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                void handleCreateReply();
+          <VStack spacing={1.5} align="stretch">
+            <Textarea
+              ref={replyInputRef}
+              bg="white"
+              placeholder={
+                "写下你的回复" +
+                (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
               }
-            }}
-            rows={2}
-          />
-          <ShudongEmojiBar
-            value={replyMarkdown}
-            onChange={setReplyMarkdown}
-            textareaRef={replyInputRef}
-          />
+              value={replyMarkdown}
+              onChange={(e) => setReplyMarkdown(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  void handleCreateReply();
+                }
+              }}
+              rows={2}
+            />
+            <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+              <ShudongEmojiBar
+                value={replyMarkdown}
+                onChange={setReplyMarkdown}
+                textareaRef={replyInputRef}
+              />
+              <MarkdownSupport
+                fontSize="sm"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Flex>
+          </VStack>
           <Flex justify="space-between" align="center">
             <FormControl display="flex" alignItems="center" w="auto">
-              <FormLabel htmlFor="reply-anon-switch" mb="0" fontSize="xs">
+              <FormLabel
+                htmlFor={`reply-anon-switch-${post.id}`}
+                mb="0"
+                fontSize="sm"
+              >
                 <T>匿名回复</T>
               </FormLabel>
               <Switch
-                id="reply-anon-switch"
+                id={`reply-anon-switch-${post.id}`}
                 size="sm"
                 isChecked={replyIsAnon}
                 onChange={(e) => setReplyIsAnon(e.target.checked)}
@@ -666,11 +769,11 @@ export function ShudongPostItem({
             </FormControl>
 
             <HStack spacing={2}>
-              <Button size="xs" onClick={() => setIsReplying(false)}>
+              <Button size="sm" onClick={() => setIsReplying(false)}>
                 <T>取消</T>
               </Button>
               <Button
-                size="xs"
+                size="sm"
                 colorScheme="brand"
                 onClick={() => {
                   void handleCreateReply();

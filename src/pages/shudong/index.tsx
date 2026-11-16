@@ -23,12 +23,13 @@ import {
   MenuOptionGroup,
   MenuItemOption,
   MenuDivider,
+  Portal,
   Link,
   Icon,
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
-import { MdAdd, MdNotifications } from "react-icons/md";
+import { MdAdd, MdNotifications, MdNotificationsNone } from "react-icons/md";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import useMobile from "useMobile";
@@ -50,13 +51,14 @@ import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { toast } from "react-toastify";
 import Autosaver from "components/Autosaver";
+import MarkdownSupport from "components/MarkdownSupport";
 
 type EffectiveSubscribeChoice = Exclude<ShudongSubscribeAll, "default">;
 
 const subscribeChoiceLabels: Record<EffectiveSubscribeChoice, string> = {
   yes: "新问题",
   yesWithResponses: "新问题并自动订阅",
-  no: "关",
+  no: "仅已订阅",
 };
 
 /**
@@ -134,6 +136,10 @@ export default fullPage(() => {
   const notificationFrequency =
     pref?.shudongNotificationFrequency ?? "immediate";
   const isDailyDigest = notificationFrequency === "daily";
+  const isNewQuestionNotifOff = effectiveSubscribeChoice === "no";
+  const notificationIcon = isNewQuestionNotifOff
+    ? MdNotificationsNone
+    : MdNotifications;
 
   const handleSubscribeAllChange = async (val: EffectiveSubscribeChoice) => {
     await trpc.users.setUserPreference.mutate({
@@ -203,15 +209,23 @@ export default fullPage(() => {
 
   return (
     <>
-      <TopBar {...topBarPaddings()} ps={0} pe={0}>
-        {/* Header, notification menu, and action button share a single row
-            and wrap only if the viewport is too narrow. Boxed to
-            appPageMaxWidth so the 提问 button aligns flush with posts. */}
+      <TopBar
+        {...topBarPaddings()}
+        ps={0}
+        pe={0}
+        pb={{ base: 4, [breakpoint]: 5 }}
+        bg="rgba(255, 255, 255, 0.92)"
+        backdropFilter="blur(8px)"
+        shadow="0 1px 2px rgba(0, 0, 0, 0.04)"
+      >
+        {/* Header, notification menu, and action button share a single row.
+            Boxed to appPageMaxWidth so the 提问 button aligns flush with
+            posts. */}
         <Flex
           justify="space-between"
           align="center"
-          wrap="wrap"
-          gap={3}
+          gap={{ base: 2, md: 3 }}
+          minH={{ base: "40px", [breakpoint]: "auto" }}
           ps={pageMarginX}
           pe={{
             base: mobileSidbarIconLeftWithMargin,
@@ -219,14 +233,43 @@ export default fullPage(() => {
           }}
           maxW={{ base: "100%", xl: appPageMaxWidth }}
         >
-          <HStack spacing={4} align="center">
-            <PageBreadcrumb current="树洞" marginBottom={0} />
-            <Menu>
-              <MenuButton fontSize="sm" color="gray.600">
-                <HStack spacing={1} align="center">
-                  <Icon as={MdNotifications} boxSize={5} />
-                  <Text>
-                    <T>接收通知：</T>
+          <HStack spacing={{ base: 2.5, md: 4 }} align="center" minW={0}>
+            <PageBreadcrumb current="树洞" marginBottom={0} flexShrink={0} />
+            <Menu isLazy>
+              <MenuButton
+                px={{ base: 2.5, md: 3.5 }}
+                h={{ base: "34px", md: "36px" }}
+                borderRadius="full"
+                borderWidth="1px"
+                borderColor="gray.200"
+                bg="gray.50"
+                fontSize={{ base: "xs", md: "sm" }}
+                fontWeight="medium"
+                color="gray.700"
+                minW={0}
+                maxW="100%"
+                transition="background-color 0.15s, border-color 0.15s"
+                _hover={{ bg: "gray.100", borderColor: "gray.300" }}
+                _expanded={{ bg: "gray.100", borderColor: "gray.300" }}
+                sx={{
+                  "& > span": {
+                    display: "flex",
+                    alignItems: "center",
+                    minW: 0,
+                  },
+                }}
+              >
+                <HStack spacing={1.5} align="center" minW={0}>
+                  <Icon
+                    as={notificationIcon}
+                    boxSize={4}
+                    color={isNewQuestionNotifOff ? "gray.500" : "brand.500"}
+                    flexShrink={0}
+                  />
+                  <Text as="span" isTruncated>
+                    <Box as="span" display={{ base: "none", md: "inline" }}>
+                      <T>接收通知：</T>
+                    </Box>
                     {getNotificationSummaryParts(
                       effectiveSubscribeChoice,
                       isDailyDigest,
@@ -237,79 +280,110 @@ export default fullPage(() => {
                       </Fragment>
                     ))}
                   </Text>
-                  <ChevronDownIcon boxSize={4} />
+                  <ChevronDownIcon
+                    boxSize={4}
+                    color="gray.500"
+                    flexShrink={0}
+                  />
                 </HStack>
               </MenuButton>
-              <MenuList>
-                <MenuOptionGroup
-                  title="新问题通知"
-                  type="radio"
-                  value={effectiveSubscribeChoice}
-                  onChange={(val) => {
-                    if (
-                      val === "yes" ||
-                      val === "yesWithResponses" ||
-                      val === "no"
-                    ) {
-                      void handleSubscribeAllChange(val);
-                    }
-                  }}
+              <Portal>
+                <MenuList
+                  minW="240px"
+                  maxW="calc(100vw - 32px)"
+                  shadow="lg"
+                  borderColor="gray.200"
                 >
-                  <MenuItemOption value="yes">
-                    <T>新问题</T>
-                  </MenuItemOption>
-                  <MenuItemOption
-                    value="yesWithResponses"
-                    alignItems="baseline"
+                  <MenuOptionGroup
+                    title="新问题通知"
+                    type="radio"
+                    value={effectiveSubscribeChoice}
+                    onChange={(val) => {
+                      if (
+                        val === "yes" ||
+                        val === "yesWithResponses" ||
+                        val === "no"
+                      ) {
+                        void handleSubscribeAllChange(val);
+                      }
+                    }}
                   >
-                    <Text as="span" display="block">
-                      <T>新问题并自动订阅</T>
-                    </Text>
-                    <Text
-                      as="span"
-                      display="block"
-                      fontSize="xs"
-                      color="gray.500"
+                    <MenuItemOption value="yes">
+                      <T>新问题</T>
+                    </MenuItemOption>
+                    <MenuItemOption
+                      value="yesWithResponses"
+                      alignItems="baseline"
+                      whiteSpace="normal"
                     >
-                      <T>自动订阅后续新问题以接收回复，可单独取消</T>
-                    </Text>
-                  </MenuItemOption>
-                  <MenuItemOption value="no">
-                    <T>关</T>
-                  </MenuItemOption>
-                </MenuOptionGroup>
-                <MenuDivider />
-                <MenuOptionGroup
-                  title="新问题和新回复的通知频率"
-                  type="radio"
-                  value={notificationFrequency}
-                  onChange={(val) => {
-                    if (val === "immediate" || val === "daily") {
-                      void handleFrequencyChange(val);
-                    }
-                  }}
-                >
-                  <MenuItemOption value="immediate">
-                    <T>即时通知</T>
-                  </MenuItemOption>
-                  <MenuItemOption value="daily" alignItems="baseline">
-                    <Text as="span" display="block">
-                      <T>每日汇总</T>
-                    </Text>
-                    <Text
-                      as="span"
-                      display="block"
-                      fontSize="xs"
-                      color="gray.500"
+                      <Text as="span" display="block">
+                        <T>新问题并自动订阅</T>
+                      </Text>
+                      <Text
+                        as="span"
+                        display="block"
+                        fontSize="xs"
+                        color="gray.500"
+                      >
+                        <T>自动订阅后续新问题以接收回复，可单独取消</T>
+                      </Text>
+                    </MenuItemOption>
+                    <MenuItemOption
+                      value="no"
+                      alignItems="baseline"
+                      whiteSpace="normal"
                     >
-                      <T>北京时间晚八点发出</T>
-                    </Text>
-                  </MenuItemOption>
-                </MenuOptionGroup>
-              </MenuList>
+                      <T>关</T>
+                    </MenuItemOption>
+                  </MenuOptionGroup>
+                  <MenuDivider />
+                  <MenuOptionGroup
+                    title="新问题和新回复的通知频率"
+                    type="radio"
+                    value={notificationFrequency}
+                    onChange={(val) => {
+                      if (val === "immediate" || val === "daily") {
+                        void handleFrequencyChange(val);
+                      }
+                    }}
+                  >
+                    <MenuItemOption value="immediate">
+                      <T>即时通知</T>
+                    </MenuItemOption>
+                    <MenuItemOption
+                      value="daily"
+                      alignItems="baseline"
+                      whiteSpace="normal"
+                    >
+                      <Text as="span" display="block">
+                        <T>每日汇总</T>
+                      </Text>
+                      <Text
+                        as="span"
+                        display="block"
+                        fontSize="xs"
+                        color="gray.500"
+                      >
+                        <T>北京时间晚八点发出</T>
+                      </Text>
+                    </MenuItemOption>
+                  </MenuOptionGroup>
+                </MenuList>
+              </Portal>
             </Menu>
           </HStack>
-          <Button colorScheme="brand" leftIcon={<MdAdd />} onClick={onOpen}>
+          <Button
+            colorScheme="brand"
+            h={{ base: "40px", [breakpoint]: "38px" }}
+            px={{ base: 3, md: 4 }}
+            fontSize="sm"
+            borderRadius={{ base: "md", [breakpoint]: "lg" }}
+            boxShadow="sm"
+            flexShrink={0}
+            iconSpacing={1.5}
+            leftIcon={<Icon as={MdAdd} boxSize={4} />}
+            onClick={onOpen}
+          >
             <T>提问</T>
           </Button>
         </Flex>
@@ -394,16 +468,19 @@ export default fullPage(() => {
                 }}
                 rows={5}
               />
-              <FormControl display="flex" alignItems="center">
-                <FormLabel htmlFor="anon-switch" mb="0">
-                  <T>匿名提问</T>
-                </FormLabel>
-                <Switch
-                  id="anon-switch"
-                  isChecked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                />
-              </FormControl>
+              <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+                <FormControl display="flex" alignItems="center" w="auto">
+                  <FormLabel htmlFor="anon-switch" mb="0">
+                    <T>匿名提问</T>
+                  </FormLabel>
+                  <Switch
+                    id="anon-switch"
+                    isChecked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                  />
+                </FormControl>
+                <MarkdownSupport fontSize="sm" />
+              </Flex>
             </VStack>
           </ModalBody>
           <ModalFooter>

@@ -77,13 +77,16 @@ export function ShudongEmojiPopover({
   activeEmojis,
   ariaLabel = "更多表情",
   color = "gray.500",
+  variant = "ghost",
 }: {
   onSelect: (emoji: ShudongEmoji) => void;
   activeEmojis?: ReadonlySet<string>;
   ariaLabel?: string;
   color?: string;
+  variant?: "ghost" | "pill";
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const isPill = variant === "pill";
 
   return (
     <Box
@@ -109,9 +112,19 @@ export function ShudongEmojiPopover({
             type="button"
             variant="ghost"
             size="xs"
-            minW={7}
-            h={7}
+            minW={isPill ? "30px" : 7}
+            h={isPill ? "26px" : 7}
+            px={0}
+            borderRadius={isPill ? "full" : "md"}
+            borderWidth={isPill ? "1px" : undefined}
+            borderColor={isPill ? "gray.200" : undefined}
+            bg={isPill ? "white" : undefined}
             color={color}
+            _hover={
+              isPill
+                ? { bg: "gray.100", borderColor: "gray.300", color: "gray.700" }
+                : undefined
+            }
             aria-label={ariaLabel}
             icon={<Icon as={MdOutlineAddReaction} boxSize={4} />}
             onMouseDown={(e) => e.preventDefault()}
@@ -128,30 +141,37 @@ export function ShudongEmojiPopover({
           >
             <PopoverBody p={2}>
               <SimpleGrid columns={6} spacing={1}>
-                {shudongEmojis.map((emoji) => (
-                  <Button
-                    key={emoji}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    minW={8}
-                    h={8}
-                    px={1}
-                    fontSize="lg"
-                    fontWeight="normal"
-                    bg={activeEmojis?.has(emoji) ? "blue.50" : undefined}
-                    aria-label={`选择表情 ${emoji}`}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onSelect(emoji);
-                      onClose();
-                    }}
-                  >
-                    {emoji}
-                  </Button>
-                ))}
+                {shudongEmojis.map((emoji) => {
+                  const isActive = activeEmojis?.has(emoji);
+                  return (
+                    <Button
+                      key={emoji}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      minW={8}
+                      h={8}
+                      px={1}
+                      fontSize="lg"
+                      fontWeight="normal"
+                      borderRadius="md"
+                      bg={isActive ? "blue.50" : undefined}
+                      borderWidth={isActive ? "1px" : undefined}
+                      borderColor={isActive ? "blue.200" : undefined}
+                      _hover={{ bg: isActive ? "blue.100" : "gray.100" }}
+                      aria-label={`选择表情 ${emoji}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onSelect(emoji);
+                        onClose();
+                      }}
+                    >
+                      {emoji}
+                    </Button>
+                  );
+                })}
               </SimpleGrid>
             </PopoverBody>
           </PopoverContent>

@@ -5,7 +5,6 @@ import {
   Button,
   Flex,
   Heading,
-  HStack,
   Icon,
   VStack,
   Text,
@@ -15,21 +14,23 @@ import {
   Switch,
   Divider,
 } from "@chakra-ui/react";
-import { FiShare2 } from "react-icons/fi";
+import { FiCheck, FiShare2 } from "react-icons/fi";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import useMobile from "useMobile";
 import { cmdOrCtrlChar } from "macOrWin";
 import { canAccessShudong } from "shared/ShudongPermissions";
-import PageBreadcrumb, {
-  pageBreadcrumbMarginBottom,
-} from "components/PageBreadcrumb";
+import { mobileSidbarIconLeftWithMargin } from "components/Navbars";
+import PageBreadcrumb from "components/PageBreadcrumb";
+import { breakpoint } from "theme/breakpoints";
+import { pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { ShudongEmojiBar } from "components/ShudongEmojiBar";
 import { toast } from "react-toastify";
 import Autosaver from "components/Autosaver";
+import MarkdownSupport from "components/MarkdownSupport";
 
 /**
  * Question detail page displaying the root question, existing response tree,
@@ -54,6 +55,29 @@ export default function Page() {
   // Responders are non-anonymous (false) by default
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasCopied, setHasCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleShare = () => {
+    if (!navigator.clipboard) {
+      return;
+    }
+    void navigator.clipboard.writeText(window.location.href);
+    toast.success("已复制链接到剪贴板");
+    setHasCopied(true);
+    if (copyTimerRef.current) {
+      clearTimeout(copyTimerRef.current);
+    }
+    copyTimerRef.current = setTimeout(() => setHasCopied(false), 2000);
+  };
 
   // Restore unsaved response draft specific to this question ID
   useEffect(() => {
@@ -107,143 +131,171 @@ export default function Page() {
     );
   }
 
-  if (isLoading || !data) {
-    return <Loader />;
-  }
-
-  const { question, responses } = data;
+  const mobileEndPadding = [
+    mobileSidbarIconLeftWithMargin,
+    pageMarginX.base,
+  ].join(" - ");
 
   return (
     <>
-      {/* Borderless gray share button placed right after the breadcrumb to
-          match post action styling, using normal page breadcrumb spacing. */}
-      <HStack spacing={4} align="center" mb={pageBreadcrumbMarginBottom}>
+      {/* Align header vertically with the fixed mobile menu button and keep
+          right clearance below the breakpoint while staying flush with post
+          cards on desktop. */}
+      <Flex
+        justify="space-between"
+        align="center"
+        wrap="wrap"
+        gap={2}
+        mt={{ base: "-9px", [breakpoint]: 0 }}
+        minH={{ base: "40px", [breakpoint]: "auto" }}
+        pe={{ base: `calc(${mobileEndPadding})`, [breakpoint]: 0 }}
+        mb={{ base: 4, [breakpoint]: 6 }}
+      >
         <PageBreadcrumb
+          showBackArrow
           current="问题详情"
-          parents={[{ name: "树洞首页", link: "/shudong" }]}
+          parents={[{ name: "树洞", link: "/shudong" }]}
           marginBottom={0}
         />
-        <HStack
-          as="button"
-          type="button"
-          spacing={1}
-          align="center"
-          fontSize="sm"
-          color="gray.600"
+
+        <Button
+          size="sm"
+          variant="outline"
+          h={{ base: "34px", [breakpoint]: "36px" }}
+          px={{ base: 2.5, md: 3 }}
+          borderRadius="full"
+          borderColor={hasCopied ? "green.300" : "gray.200"}
+          bg={hasCopied ? "green.50" : "white"}
+          color={hasCopied ? "green.600" : "gray.700"}
+          fontWeight="medium"
           flexShrink={0}
-          onClick={() => {
-            if (navigator.clipboard) {
-              void navigator.clipboard.writeText(window.location.href);
-              toast.success("已复制链接到剪贴板");
-            }
-          }}
+          leftIcon={<Icon as={hasCopied ? FiCheck : FiShare2} boxSize={3.5} />}
+          _hover={{ bg: hasCopied ? "green.50" : "gray.100" }}
+          onClick={handleShare}
         >
-          <Icon as={FiShare2} boxSize={4} />
-          <Text>
-            <T>分享</T>
-          </Text>
-        </HStack>
-      </HStack>
+          {hasCopied ? <T>已复制</T> : <T>分享</T>}
+        </Button>
+      </Flex>
 
-      <VStack spacing={6} align="stretch">
-        {/* Root question display */}
-        <ShudongPostItem
-          post={question}
-          onRefetch={refetch}
-          isRootQuestion
-          onDeleteSuccess={() => void router.push("/shudong")}
-        />
-
-        <Heading size="md" mt={2}>
-          {responses.length} <T>条回答</T>
-        </Heading>
-
-        {/* List of top-level responses */}
-        {responses.length === 0 ? (
-          <Text color="gray.500">
-            <T>暂无回答，抢沙发吧！</T>
-          </Text>
-        ) : (
-          <VStack spacing={4} align="stretch">
-            {responses.map((resp) => (
-              <ShudongPostItem key={resp.id} post={resp} onRefetch={refetch} />
-            ))}
-          </VStack>
-        )}
-
-        {/* Divider rendered only when responses exist to avoid visual
-            clutter */}
-        {responses.length > 0 && <Divider />}
-
-        {/* Response creation panel positioned at the bottom of thread */}
-        <Box
-          p={4}
-          borderWidth="1px"
-          borderRadius="md"
-          bg="white"
-          boxShadow="sm"
-        >
-          <Autosaver
-            data={responseMarkdown}
-            onSave={async (draft) => {
-              await trpc.shudong.saveDraft.mutate({
-                shudongParentId: questionId,
-                shudongPostId: null,
-                markdown: draft,
-              });
-            }}
+      {isLoading || !data ? (
+        <Loader />
+      ) : (
+        <VStack spacing={6} align="stretch">
+          {/* Root question display */}
+          <ShudongPostItem
+            post={data.question}
+            onRefetch={refetch}
+            isRootQuestion
+            onDeleteSuccess={() => void router.push("/shudong")}
           />
-          <Heading size="md" mb={3}>
-            <T>写下你的回答</T>
-          </Heading>
-          <VStack spacing={3} align="stretch">
-            <VStack spacing={1.5} align="stretch">
-              <Textarea
-                ref={responseInputRef}
-                placeholder={
-                  !isMobile ? `(${cmdOrCtrlChar()} + Enter 发送)` : ""
-                }
-                value={responseMarkdown}
-                onChange={(e) => setResponseMarkdown(e.target.value)}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                    e.preventDefault();
-                    void handleCreateResponse();
-                  }
-                }}
-                rows={4}
-              />
-              <ShudongEmojiBar
-                value={responseMarkdown}
-                onChange={setResponseMarkdown}
-                textareaRef={responseInputRef}
-              />
-            </VStack>
-            <Flex justify="space-between" align="center">
-              <FormControl display="flex" alignItems="center" w="auto">
-                <FormLabel htmlFor="resp-anon-switch" mb="0" fontSize="sm">
-                  <T>匿名回答</T>
-                </FormLabel>
-                <Switch
-                  id="resp-anon-switch"
-                  isChecked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                />
-              </FormControl>
 
-              <Button
-                colorScheme="brand"
-                onClick={() => {
-                  void handleCreateResponse();
-                }}
-                isLoading={isSubmitting}
-              >
-                <T>发表回答</T>
-              </Button>
-            </Flex>
-          </VStack>
-        </Box>
-      </VStack>
+          <Heading size="md" mt={2}>
+            {data.responses.length} <T>条回答</T>
+          </Heading>
+
+          {/* List of top-level responses */}
+          {data.responses.length === 0 ? (
+            <Text color="gray.500">
+              <T>暂无回答，抢沙发吧！</T>
+            </Text>
+          ) : (
+            <VStack spacing={4} align="stretch">
+              {data.responses.map((resp) => (
+                <ShudongPostItem
+                  key={resp.id}
+                  post={resp}
+                  onRefetch={refetch}
+                />
+              ))}
+            </VStack>
+          )}
+
+          {/* Divider rendered only when responses exist to avoid visual
+              clutter */}
+          {data.responses.length > 0 && <Divider />}
+
+          {/* Response creation panel positioned at the bottom of thread */}
+          <Box
+            px={{ base: 4, md: 5 }}
+            py={4}
+            borderWidth="1px"
+            borderColor="gray.200"
+            borderRadius="lg"
+            bg="white"
+            boxShadow="sm"
+          >
+            <Autosaver
+              data={responseMarkdown}
+              onSave={async (draft) => {
+                await trpc.shudong.saveDraft.mutate({
+                  shudongParentId: questionId,
+                  shudongPostId: null,
+                  markdown: draft,
+                });
+              }}
+            />
+            <Heading size="md" mb={3}>
+              <T>写下你的回答</T>
+            </Heading>
+            <VStack spacing={2.5} align="stretch">
+              <VStack spacing={1.5} align="stretch">
+                <Textarea
+                  ref={responseInputRef}
+                  placeholder={
+                    !isMobile ? `(${cmdOrCtrlChar()} + Enter 发送)` : ""
+                  }
+                  value={responseMarkdown}
+                  onChange={(e) => setResponseMarkdown(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                      e.preventDefault();
+                      void handleCreateResponse();
+                    }
+                  }}
+                  rows={4}
+                />
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  wrap="wrap"
+                  gap={2}
+                >
+                  <ShudongEmojiBar
+                    value={responseMarkdown}
+                    onChange={setResponseMarkdown}
+                    textareaRef={responseInputRef}
+                  />
+                  <MarkdownSupport fontSize="sm" />
+                </Flex>
+              </VStack>
+              <Flex justify="space-between" align="center">
+                <FormControl display="flex" alignItems="center" w="auto">
+                  <FormLabel htmlFor="resp-anon-switch" mb="0" fontSize="sm">
+                    <T>匿名回答</T>
+                  </FormLabel>
+                  <Switch
+                    id="resp-anon-switch"
+                    size="sm"
+                    isChecked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                  />
+                </FormControl>
+
+                <Button
+                  size="sm"
+                  colorScheme="brand"
+                  onClick={() => {
+                    void handleCreateResponse();
+                  }}
+                  isLoading={isSubmitting}
+                >
+                  <T>发表</T>
+                </Button>
+              </Flex>
+            </VStack>
+          </Box>
+        </VStack>
+      )}
     </>
   );
 }
