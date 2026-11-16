@@ -3,8 +3,13 @@ import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { insertOneOnOneMessagePrefixImpl } from "./chatsInternal";
-import { saveDraftMessageImpl } from "./chats";
+import {
+  getLastMessageCreatedAtImpl,
+  saveDraftMessageImpl,
+  updateMessageImpl,
+} from "./chats";
 import { oneOnOneMessagePrefix } from "shared/ChatMessage";
+import User from "shared/User";
 
 describe("insertOneOnOneMessagePrefixImpl", () => {
   let transaction: Transaction;
@@ -149,5 +154,90 @@ describe("saveDraftMessageImpl", () => {
 
     expect(user1Draft?.markdown).to.equal("User 1 initial draft");
     expect(user2Draft?.markdown).to.equal("User 2 updated draft");
+  });
+});
+
+describe("getLastMessageCreatedAtImpl and updateMessageImpl", () => {
+  let transaction: Transaction;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should reject arbitrary ILIKE prefixes and deny former mentors", async () => {
+    const mentee = await db.User.create(
+      {
+        email: `chat-mentee-${Date.now()}@test.com`,
+        name: "Chat Mentee",
+        roles: ["Mentee"],
+      },
+      { transaction },
+    );
+    const endedMentor = await db.User.create(
+      {
+        email: `chat-ended-mentor-${Date.now()}@test.com`,
+        name: "Ended Mentor",
+        roles: ["Mentor", "TransactionalMentor"],
+      },
+      { transaction },
+    );
+    await db.Mentorship.create(
+      {
+        mentorId: endedMentor.id,
+        menteeId: mentee.id,
+        transactional: true,
+        endsAt: new Date(Date.now() - 86400 * 1000).toISOString(),
+      },
+      { transaction },
+    );
+
+    const room = await db.ChatRoom.create(
+      { menteeId: mentee.id },
+      { transaction },
+    );
+    const msg = await db.ChatMessage.create(
+      {
+        roomId: room.id,
+        userId: endedMentor.id,
+        markdown: `${oneOnOneMessagePrefix}Confidential note`,
+      },
+      { transaction },
+    );
+
+    const validCreatedAt = await getLastMessageCreatedAtImpl(
+      mentee.id,
+      oneOnOneMessagePrefix,
+      transaction,
+    );
+    void expect(validCreatedAt).to.not.be.null;
+
+    // Arbitrary wildcard prefix must be rejected
+    try {
+      await getLastMessageCreatedAtImpl(
+        mentee.id,
+        "%Confidential%",
+        transaction,
+      );
+      expect.fail("Should have rejected arbitrary prefix");
+    } catch (err: unknown) {
+      expect((err as Error).message).to.contain("invalid_value");
+    }
+
+    // Ended transactional mentor cannot update message after losing room access
+    try {
+      await updateMessageImpl(
+        endedMentor as unknown as User,
+        msg.id,
+        "Updated note",
+        transaction,
+      );
+      expect.fail("Should have denied former mentor");
+    } catch (err: unknown) {
+      expect((err as Error).message).to.contain("没有权限访问学生");
+    }
   });
 });

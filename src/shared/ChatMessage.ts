@@ -16,3 +16,12 @@ export const oneOnOneMessagePrefix = "【一对一】";
 export const transactionalRequestMessagePrefix = "【不定期请求】";
 export const mentorReviewMessagePrefix = "【导师访谈】";
 export const menteeReviewMessagePrefix = "【学生访谈】";
+
+export const zChatMessagePrefix = z.enum([
+  oneOnOneMessagePrefix,
+  transactionalRequestMessagePrefix,
+  mentorReviewMessagePrefix,
+  menteeReviewMessagePrefix,
+  "",
+]);
+export type ChatMessagePrefix = z.TypeOf<typeof zChatMessagePrefix>;
