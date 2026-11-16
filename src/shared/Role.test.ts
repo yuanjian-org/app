@@ -1,5 +1,7 @@
 import { expect } from "chai";
-import { isPermitted } from "./Role";
+import sinon from "sinon";
+import * as isDevModule from "./isDev";
+import { isPasswordProhibited, isPermitted } from "./Role";
 
 describe("Role Authorization - isPermitted", () => {
   it("should return true when permitted is undefined", () => {
@@ -43,5 +45,29 @@ describe("Role Authorization - isPermitted", () => {
   it("should return false when permitted is an empty array", () => {
     void expect(isPermitted(["Mentee", "Volunteer"], [])).to.be.false;
     void expect(isPermitted([], [])).to.be.false;
+  });
+});
+
+describe("isPasswordProhibited", () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it("returns true for privileged roles outside local dev", () => {
+    sinon.stub(isDevModule, "isDev").returns(false);
+    void expect(isPasswordProhibited(["UserAdmin"])).to.be.true;
+  });
+
+  it("returns false for privileged roles in local dev", () => {
+    sinon.stub(isDevModule, "isDev").returns(true);
+    void expect(isPasswordProhibited(["UserAdmin"])).to.be.false;
+  });
+
+  it("returns false for non-privileged or empty roles", () => {
+    sinon.stub(isDevModule, "isDev").returns(false);
+    void expect(isPasswordProhibited(["Volunteer"])).to.be.false;
+    void expect(isPasswordProhibited([])).to.be.false;
+    void expect(isPasswordProhibited(null)).to.be.false;
+    void expect(isPasswordProhibited(undefined)).to.be.false;
   });
 });

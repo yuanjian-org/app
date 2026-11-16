@@ -36,7 +36,7 @@ export const shudongEmojis = [
   "✨",
   "🌟",
   "🌹",
-  "🍀",
+  "➕",
   "💡",
 ] as const;
 

@@ -3,7 +3,7 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, {
   allRoles,
-  hasPrivilegedUserDataAccess,
+  isPasswordProhibited,
   isPermitted,
   roleProfile,
   zRoles,
@@ -553,8 +553,9 @@ export async function updateImpl(
         email,
         phone,
         // Clear any existing password when granting or retaining privileged
-        // roles so privileged accounts cannot log in with a password.
-        ...(hasPrivilegedUserDataAccess(input.roles) && { password: null }),
+        // roles outside local development so privileged accounts cannot log in
+        // with a password.
+        ...(isPasswordProhibited(input.roles) && { password: null }),
       }),
     },
     { transaction },
