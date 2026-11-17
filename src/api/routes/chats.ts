@@ -9,6 +9,7 @@ import {
 } from "../errors";
 import sequelize from "../database/sequelize";
 import { zChatRoom } from "../../shared/ChatRoom";
+import { zChatMessagePrefix } from "../../shared/ChatMessage";
 import { Op, Transaction } from "sequelize";
 import { zDateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
@@ -44,7 +45,7 @@ const getLastMessageCreatedAt = procedure
   .input(
     z.object({
       menteeId: z.string(),
-      prefix: z.string(),
+      prefix: zChatMessagePrefix,
     }),
   )
   .output(zNullableDateColumn)
@@ -60,6 +61,9 @@ export async function getLastMessageCreatedAtImpl(
   prefix: string,
   transaction: Transaction,
 ) {
+  // Restrict prefix to known message prefixes to prevent blind extraction of
+  // confidential mentor notes via ILIKE wildcards.
+  const validPrefix = zChatMessagePrefix.parse(prefix);
   const room = await findRoom(menteeId, transaction);
   if (!room) return null;
 
@@ -67,7 +71,7 @@ export async function getLastMessageCreatedAtImpl(
     await db.ChatMessage.max("createdAt", {
       where: {
         roomId: room.id,
-        ...(prefix ? { markdown: { [Op.iLike]: `${prefix}%` } } : {}),
+        ...(validPrefix ? { markdown: { [Op.iLike]: `${validPrefix}%` } } : {}),
       },
       transaction,
     }),
@@ -102,7 +106,6 @@ const getLastMessageUpdatedAt = procedure
     });
   });
 
-// No need to checkRoomPermission() because there is no harmful side effect
 const getLastReadAt = procedure
   .use(authUser())
   .input(
@@ -113,6 +116,7 @@ const getLastReadAt = procedure
   .output(zDateColumn)
   .query(async ({ ctx: { me }, input: { menteeId } }) => {
     return await sequelize.transaction(async (transaction) => {
+      await checkRoomPermission(me, menteeId, "read", transaction);
       const room = await findRoom(menteeId, transaction);
       if (!room) return moment(0);
 
@@ -128,7 +132,6 @@ const getLastReadAt = procedure
     });
   });
 
-// No need to checkRoomPermission() because there is no harmful side effect
 const setLastReadAt = procedure
   .use(authUser())
   .input(
@@ -139,6 +142,7 @@ const setLastReadAt = procedure
   )
   .mutation(async ({ ctx: { me }, input: { menteeId, lastReadAt } }) => {
     await sequelize.transaction(async (transaction) => {
+      await checkRoomPermission(me, menteeId, "read", transaction);
       const room = await findRoom(menteeId, transaction);
       if (!room) throw notFoundError("讨论空间", menteeId);
       await db.LastReadChatRoom.upsert(
@@ -166,6 +170,12 @@ const createMessage = procedure
   )
   .mutation(async ({ ctx: { me }, input: { roomId, markdown } }) => {
     await sequelize.transaction(async (transaction) => {
+      const r = await db.ChatRoom.findByPk(roomId, {
+        attributes: ["menteeId"],
+        transaction,
+      });
+      if (!r) throw notFoundError("讨论空间", roomId);
+      await checkRoomPermission(me, r.menteeId, "read", transaction);
       await createMessageAndScheduleEmail(me, roomId, markdown, transaction);
     });
   });
@@ -181,6 +191,40 @@ export async function createMessageAndScheduleEmail(
   await createChatMessage(author, roomId, markdown, transaction);
 }
 
+export async function updateMessageImpl(
+  me: User,
+  messageId: string,
+  markdown: string,
+  transaction: Transaction,
+) {
+  const trimmed = markdown.trim();
+  if (!trimmed) throw generalBadRequestError("内容不能为空");
+
+  const m = await db.ChatMessage.findByPk(messageId, {
+    attributes: ["id", "userId", "roomId"],
+    transaction,
+  });
+  if (!m) throw notFoundError("讨论消息", messageId);
+  if (m.userId !== me.id) throw noPermissionError("讨论消息", messageId);
+
+  const r = await db.ChatRoom.findByPk(m.roomId, {
+    attributes: ["menteeId"],
+    transaction,
+  });
+  if (!r) throw notFoundError("讨论空间", m.roomId);
+  await checkRoomPermission(me, r.menteeId, "read", transaction);
+
+  // Must schedule before saving data. See the callee's comment.
+  await scheduleNotificationBeforeSavingData("Chat", m.roomId, transaction);
+
+  await m.update({ markdown: trimmed }, { transaction });
+
+  await db.DraftMessage.destroy({
+    where: { chatMessageId: messageId, authorId: me.id },
+    transaction,
+  });
+}
+
 /**
  * Only the user who created the message can update it.
  */
@@ -193,26 +237,8 @@ const updateMessage = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { messageId, markdown } }) => {
-    const trimmed = markdown.trim();
-    if (!trimmed) throw generalBadRequestError("内容不能为空");
-
     await sequelize.transaction(async (transaction) => {
-      const m = await db.ChatMessage.findByPk(messageId, {
-        attributes: ["id", "userId", "roomId"],
-        transaction,
-      });
-      if (!m) throw notFoundError("讨论消息", messageId);
-      if (m.userId !== me.id) throw noPermissionError("讨论消息", messageId);
-
-      // Must schedule before saving data. See the callee's comment.
-      await scheduleNotificationBeforeSavingData("Chat", m.roomId, transaction);
-
-      await m.update({ markdown: trimmed }, { transaction });
-
-      await db.DraftMessage.destroy({
-        where: { chatMessageId: messageId, authorId: me.id },
-        transaction,
-      });
+      await updateMessageImpl(me, messageId, markdown, transaction);
     });
   });
 
