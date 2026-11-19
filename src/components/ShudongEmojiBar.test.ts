@@ -13,11 +13,38 @@ describe("ShudongEmojiBar", () => {
   let mod: ShudongEmojiBarMod;
   let rtl: typeof import("@testing-library/react");
   let chakra: typeof import("@chakra-ui/react");
+  let cleanupJsdom: (() => void) | undefined;
 
-  before(() => {
-    // Register JSDOM before loading Chakra/Emotion so Emotion sees
-    // `document` and preserves `React.forwardRef` on trigger components.
-    cjsRequire("global-jsdom/register");
+  before(function () {
+    this.timeout(10000);
+    const globalObj = globalThis as Record<string, unknown>;
+    delete globalObj.document;
+    delete globalObj.window;
+
+    const globalJsdom = cjsRequire(
+      "global-jsdom",
+    ) as typeof import("global-jsdom");
+    cleanupJsdom = globalJsdom();
+
+    // Evict DOM-sensitive modules cached by earlier non-JSDOM tests (such as
+    // Footer.test.ts) while `document` was undefined so Emotion preserves
+    // `React.forwardRef` on Chakra components.
+    for (const key of Object.keys(cjsRequire.cache)) {
+      const normalized = key.replace(/\\/g, "/");
+      if (
+        normalized.includes("/node_modules/react-dom/") ||
+        normalized.includes("/node_modules/react-focus-lock/") ||
+        normalized.includes("/node_modules/@testing-library/") ||
+        normalized.includes("/node_modules/@chakra-ui/") ||
+        normalized.includes("/node_modules/@emotion/") ||
+        normalized.includes("/node_modules/framer-motion/") ||
+        (normalized.includes("/src/components/") &&
+          !normalized.endsWith(".test.ts"))
+      ) {
+        delete cjsRequire.cache[key];
+      }
+    }
+
     mod = cjsRequire("./ShudongEmojiBar");
     rtl = cjsRequire("@testing-library/react");
     chakra = cjsRequire("@chakra-ui/react");
@@ -28,9 +55,10 @@ describe("ShudongEmojiBar", () => {
     if (typeof window !== "undefined") {
       window.close();
     }
-    if (typeof document !== "undefined") {
-      (document as Document & { destroy?: () => void }).destroy?.();
-    }
+    cleanupJsdom?.();
+    const globalObj = globalThis as Record<string, unknown>;
+    delete globalObj.document;
+    delete globalObj.window;
   });
 
   describe("insertEmojiAtCursor", () => {
@@ -240,6 +268,89 @@ describe("ShudongEmojiBar", () => {
       expect(selected).to.deep.equal(["👍"]);
       expect(trigger.getAttribute("aria-expanded")).to.equal("false");
       expect(anchorClicks).to.equal(0);
+    });
+
+    it("stays open inside Modal without stealing Textarea focus", async () => {
+      let modalCloseCount = 0;
+
+      function ModalEditorHarness() {
+        const [value, setValue] = React.useState("你好世界");
+        const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+        return React.createElement(
+          chakra.ChakraProvider,
+          null,
+          React.createElement(
+            chakra.Modal,
+            {
+              isOpen: true,
+              onClose: () => {
+                modalCloseCount += 1;
+              },
+              initialFocusRef: textareaRef,
+            },
+            React.createElement(chakra.ModalOverlay),
+            React.createElement(
+              chakra.ModalContent,
+              null,
+              React.createElement(
+                chakra.ModalBody,
+                null,
+                React.createElement(chakra.Textarea, {
+                  ref: textareaRef,
+                  "aria-label": "问题内容",
+                  value,
+                  onChange: (e) => setValue(e.target.value),
+                }),
+                React.createElement(mod.ShudongEmojiBar, {
+                  value,
+                  onChange: setValue,
+                  textareaRef,
+                }),
+              ),
+            ),
+          ),
+        );
+      }
+
+      const { getByLabelText } = rtl.render(
+        React.createElement(ModalEditorHarness),
+      );
+
+      await rtl.act(async () => {
+        await new Promise((r) => setTimeout(r, 30));
+      });
+
+      const textarea = getByLabelText("问题内容") as HTMLTextAreaElement;
+      textarea.focus();
+      textarea.setSelectionRange(2, 2);
+      expect(document.activeElement).to.equal(textarea);
+
+      const trigger = getByLabelText("更多表情");
+      await rtl.act(async () => {
+        rtl.fireEvent.click(trigger);
+        await new Promise((r) => setTimeout(r, 30));
+      });
+
+      // Popover must remain open after rAF/FocusLock settles and keep focus on
+      // the Modal's Textarea.
+      expect(trigger.getAttribute("aria-expanded")).to.equal("true");
+      expect(document.activeElement).to.equal(textarea);
+      expect(modalCloseCount).to.equal(0);
+
+      const emojiBtn = getByLabelText("选择表情 🎉");
+      const popoverDialog = emojiBtn.closest('[role="dialog"]');
+      expect(popoverDialog).to.not.equal(null);
+      const mouseDownAllowed = rtl.fireEvent.mouseDown(popoverDialog!);
+      expect(mouseDownAllowed).to.equal(false);
+
+      await rtl.act(async () => {
+        rtl.fireEvent.click(emojiBtn);
+        await new Promise((r) => setTimeout(r, 30));
+      });
+
+      expect(textarea.value).to.equal("你好🎉世界");
+      expect(trigger.getAttribute("aria-expanded")).to.equal("false");
+      expect(modalCloseCount).to.equal(0);
     });
   });
 });

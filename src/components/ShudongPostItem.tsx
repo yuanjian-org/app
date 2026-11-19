@@ -497,19 +497,12 @@ export function ShudongPostItem({
               }}
               rows={3}
             />
-            <Flex
-              justify={isQuestionNode ? "flex-end" : "space-between"}
-              align="center"
-              wrap="wrap"
-              gap={2}
-            >
-              {!isQuestionNode && (
-                <ShudongEmojiBar
-                  value={editMarkdown}
-                  onChange={setEditMarkdown}
-                  textareaRef={editInputRef}
-                />
-              )}
+            <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+              <ShudongEmojiBar
+                value={editMarkdown}
+                onChange={setEditMarkdown}
+                textareaRef={editInputRef}
+              />
               <MarkdownSupport
                 fontSize="sm"
                 onClick={(e) => e.stopPropagation()}
