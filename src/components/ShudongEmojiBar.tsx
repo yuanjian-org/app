@@ -104,6 +104,7 @@ export function ShudongEmojiPopover({
         onOpen={onOpen}
         onClose={onClose}
         placement="top-start"
+        autoFocus={false}
         returnFocusOnClose={false}
         isLazy
       >
@@ -134,6 +135,7 @@ export function ShudongEmojiPopover({
           <PopoverContent
             w="auto"
             boxShadow="md"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -183,7 +185,7 @@ export function ShudongEmojiPopover({
 
 /**
  * Compact bar of commonly used emojis plus a popover picker for inserting
- * emojis at the cursor position of a Shudong response Textarea.
+ * emojis at the cursor position of a Shudong post Textarea.
  */
 export function ShudongEmojiBar({
   value,
@@ -227,7 +229,11 @@ export function ShudongEmojiBar({
           fontWeight="normal"
           aria-label={`插入表情 ${emoji}`}
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => handleSelect(emoji)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSelect(emoji);
+          }}
         >
           {emoji}
         </Button>
