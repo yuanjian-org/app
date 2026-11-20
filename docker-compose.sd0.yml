@@ -1,13 +1,13 @@
 services:
   yqd:
-    image: ${APP_IMAGE_BASE_NAME:?}.yqd:latest
+    image: ${APP_IMAGE_BASE_NAME:?}:yqd
     container_name: yqd
     restart: unless-stopped
     env_file: .env.yqd
     cap_drop:
       - ALL
   sylp:
-    image: ${APP_IMAGE_BASE_NAME:?}.sylp:latest
+    image: ${APP_IMAGE_BASE_NAME:?}:sylp
     container_name: sylp
     restart: unless-stopped
     env_file: .env.sylp
