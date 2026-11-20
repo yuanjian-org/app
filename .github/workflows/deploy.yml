@@ -148,9 +148,6 @@ jobs:
           sudo docker cp temp_extract:/app/docker-death-logger.sh ./docker-death-logger.sh
           sudo docker rm temp_extract
 
-          echo ">>> Pulling service images"
-          sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose pull nginx death-logger
-
           echo ">>> Restarting Docker containers"
           sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose down --remove-orphans
           sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose up -d

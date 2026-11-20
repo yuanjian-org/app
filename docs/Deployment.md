@@ -61,10 +61,6 @@ instructions in .env.template,
 1. `sudo chown -R root:root ~/app`
 1. `sudo chmod 600 ~/app/.env*`
 1. Add Github Actions' SSH public key to `~/.ssh/authorized_keys`.
-1. Disable the unused Linux kernel `sctp` module to block container-escape /
-   local privilege escalation via SCTP (e.g., NGINX2Root Stage 2):
-   `printf 'install sctp /bin/false\nblacklist sctp\n' | sudo tee /etc/modprobe.d/disable-sctp.conf`
-   and run `sudo modprobe -r sctp` if it is currently loaded.
 
 All containers use `restart: unless-stopped`, so Docker restarts them
 automatically when they crash and after host reboots. The `death-logger`
