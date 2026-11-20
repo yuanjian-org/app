@@ -166,5 +166,5 @@ jobs:
           done
 
           echo ">>> Prune Docker images"
-          sudo docker image prune -f
+          sudo docker image prune -a -f
         EOF
