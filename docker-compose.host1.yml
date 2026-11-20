@@ -20,7 +20,7 @@ services:
     cap_drop:
       - ALL
   nginx:
-    image: m.daocloud.io/docker.io/library/nginx:1.31.9
+    image: m.daocloud.io/docker.io/library/nginx:latest
     container_name: nginx
     restart: unless-stopped
     read_only: true
