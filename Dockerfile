@@ -11,16 +11,18 @@ RUN apk add --no-cache libc6-compat
 RUN npm install -g yarn
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* ./
-RUN yarn --frozen-lockfile
+# Skip downloading the Cypress browser binary during Docker builds.
+ENV CYPRESS_INSTALL_BINARY=0
 
-# Rebuild the source code only when needed
-FROM base AS builder
-# Install yarn via npm for the build command.
-RUN npm install -g yarn
+# Install dependencies based on the preferred package manager and clean the
+# Yarn tarball cache so cached BuildKit layers fit within GHA's 10 GB cap.
+COPY package.json yarn.lock* ./
+RUN yarn --frozen-lockfile && yarn cache clean
+
+# Rebuild the source code only when needed. Reuse deps directly to avoid
+# duplicating node_modules into a second cached BuildKit layer.
+FROM deps AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NODE_ENV=production
@@ -39,7 +41,15 @@ RUN if [ ! -f .env ] || \
       sed -i '/I18N-MARKER/d' next.config.js; \
     fi
 
-RUN yarn build
+# Move traced node_modules into a separate directory with clamped mtimes so
+# its layer digest stays identical across code-only commits and is not
+# re-uploaded on every deploy.
+RUN yarn build && \
+    mkdir -p /app/.next/standalone-deps && \
+    mv /app/.next/standalone/node_modules \
+      /app/.next/standalone-deps/node_modules && \
+    TZ=UTC find /app/.next/standalone-deps -depth \
+      -exec touch -h -t 198001010000.00 {} +
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -51,20 +61,21 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
+# Copy static repo files before build outputs so app code changes do not
+# invalidate these layers.
+COPY --chown=nextjs:nodejs public ./public
+COPY --chown=nextjs:nodejs \
+  docker-compose.*.yml nginx.*.conf docker-death-logger.sh ./
+
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone-deps/ ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/ ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.*.yml ./
-COPY --from=builder --chown=nextjs:nodejs /app/nginx.*.conf ./
-COPY --from=builder --chown=nextjs:nodejs /app/docker-death-logger.sh ./
 
 USER nextjs
 
