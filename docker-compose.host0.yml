@@ -1,13 +1,13 @@
 services:
   demo:
-    image: ${APP_IMAGE_BASE_NAME:?}.demo:latest
+    image: ${APP_IMAGE_BASE_NAME:?}:demo
     container_name: demo
     restart: unless-stopped
     env_file: .env.demo
     cap_drop:
       - ALL
   xhef:
-    image: ${APP_IMAGE_BASE_NAME:?}.xhef:latest
+    image: ${APP_IMAGE_BASE_NAME:?}:xhef
     container_name: xhef
     restart: unless-stopped
     env_file: .env.xhef

@@ -91,7 +91,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}.${{ matrix.white_label }}:latest
+        tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}:${{ matrix.white_label }}
         target: runner
         # Disable OCI provenance attestations to avoid
         # "unknown manifest class" errors on Aliyun's ACR Personal
@@ -132,7 +132,7 @@ jobs:
 
           echo ">>> Pulling docker images"
           for white_label in ${{ matrix.white_labels }}; do
-            sudo docker pull ${{ env.APP_IMAGE_BASE_NAME }}.$white_label:latest
+            sudo docker pull ${{ env.APP_IMAGE_BASE_NAME }}:$white_label
           done
           sudo docker pull m.daocloud.io/docker.io/library/nginx:latest
           sudo docker pull m.daocloud.io/docker.io/library/docker:cli
@@ -141,7 +141,8 @@ jobs:
           sudo docker rm temp_extract || true
           # Any white label image will do, we use the first one from the matrix
           first_wl=$(echo "${{ matrix.white_labels }}" | awk '{print $1}')
-          sudo docker create --name temp_extract ${{ env.APP_IMAGE_BASE_NAME }}.$first_wl:latest
+          sudo docker create --name temp_extract \
+            ${{ env.APP_IMAGE_BASE_NAME }}:$first_wl
           sudo docker cp temp_extract:/app/docker-compose.${{ matrix.host_id }}.yml ./docker-compose.yml
           sudo docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
           sudo docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
