@@ -4,8 +4,6 @@ services:
     container_name: yuantu
     restart: unless-stopped
     env_file: .env.yuantu
-    security_opt:
-      - no-new-privileges:true
     cap_drop:
       - ALL
   # The container for the "x" white label deployment. Docker doesn't allow
@@ -15,8 +13,6 @@ services:
     container_name: xx
     restart: unless-stopped
     env_file: .env.x
-    security_opt:
-      - no-new-privileges:true
     cap_drop:
       - ALL
   nginx:
@@ -28,8 +24,6 @@ services:
       - /var/cache/nginx:rw,noexec,nosuid,nodev
       - /run:rw,noexec,nosuid,nodev
       - /tmp:rw,noexec,nosuid,nodev
-    security_opt:
-      - no-new-privileges:true
     cap_drop:
       - ALL
     cap_add:
@@ -57,8 +51,6 @@ services:
     image: m.daocloud.io/docker.io/library/docker:cli
     container_name: death-logger
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
     entrypoint: ["sh", "/docker-death-logger.sh"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
