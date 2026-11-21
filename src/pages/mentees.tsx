@@ -196,6 +196,18 @@ export default fullPage(() => {
   );
 }, title);
 
+/**
+ * Maintain a userId-to-value lookup map with a referentially stable setter so
+ * child cells can report fetched values in `useEffect` without re-triggering.
+ */
+function useUserFieldMap() {
+  const [map, setMap] = useState<Record<string, string>>({});
+  const setEntry = useCallback((userId: string, value: string) => {
+    setMap((current) => ({ ...current, [userId]: value }));
+  }, []);
+  return [map, setEntry] as const;
+}
+
 function MenteeTable({
   users,
   refetch,
@@ -209,56 +221,11 @@ function MenteeTable({
   isDemo?: boolean;
   isUserAdmin: boolean;
 }) {
-  const [mentee2year, setMentee2year] = useState<Record<string, string>>({});
-  const setYear = useCallback((userId: string, year: string) => {
-    setMentee2year((current) => ({ ...current, [userId]: year }));
-  }, []);
-
-  const [mentee2source, setMentee2source] = useState<Record<string, string>>(
-    {},
-  );
-  const setSource = useCallback((userId: string, source: string) => {
-    setMentee2source((current) => ({ ...current, [userId]: source }));
-  }, []);
-
-  const [mentee2mentorReview, setMentee2mentorReview] = useState<
-    Record<string, string>
-  >({});
-  const setLastMentorReviewDate = useCallback(
-    (userId: string, date: string) => {
-      setMentee2mentorReview((current) => ({
-        ...current,
-        [userId]: date,
-      }));
-    },
-    [],
-  );
-
-  const [mentee2menteeReview, setMentee2menteeReview] = useState<
-    Record<string, string>
-  >({});
-  const setLastMenteeReviewDate = useCallback(
-    (userId: string, date: string) => {
-      setMentee2menteeReview((current) => ({
-        ...current,
-        [userId]: date,
-      }));
-    },
-    [],
-  );
-
-  const [mentee2lastMeeting, setMentee2lastMeeting] = useState<
-    Record<string, string>
-  >({});
-  const setLastMeetingStartedAt = useCallback(
-    (userId: string, date: string) => {
-      setMentee2lastMeeting((current) => ({
-        ...current,
-        [userId]: date,
-      }));
-    },
-    [],
-  );
+  const [mentee2year, setYear] = useUserFieldMap();
+  const [mentee2source, setSource] = useUserFieldMap();
+  const [mentee2mentorReview, setLastMentorReviewDate] = useUserFieldMap();
+  const [mentee2menteeReview, setLastMenteeReviewDate] = useUserFieldMap();
+  const [mentee2lastMeeting, setLastMeetingStartedAt] = useUserFieldMap();
 
   const defaultSortOrder: SortOrder = [
     { key: "year", dir: "desc" },
