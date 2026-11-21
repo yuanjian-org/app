@@ -290,6 +290,53 @@ describe("Auth Providers", () => {
         await db.User.destroy({ where: { id: user.id } });
       }
     });
+
+    it("rejects non-string id arrays and invalid types", async () => {
+      const password = "mysecretpassword";
+      const hashedPassword = await hash(password, 10);
+      const testEmail = `${randomUUID()}@example.com`;
+
+      const user = await db.User.create({
+        email: testEmail,
+        name: "Array Id User",
+        password: hashedPassword,
+        roles: [],
+      });
+
+      try {
+        const arrayIdResult = await idPasswordProvider.authorize!(
+          {
+            idType: "email",
+            id: [testEmail, "nonce"] as unknown as string,
+            password,
+          },
+          {} as never,
+        );
+        expect(arrayIdResult).to.equal(null);
+
+        const badTypeResult = await idPasswordProvider.authorize!(
+          {
+            idType: "invalid",
+            id: testEmail,
+            password,
+          },
+          {} as never,
+        );
+        expect(badTypeResult).to.equal(null);
+
+        const nonStringPassword = await idPasswordProvider.authorize!(
+          {
+            idType: "email",
+            id: testEmail,
+            password: [password] as unknown as string,
+          },
+          {} as never,
+        );
+        expect(nonStringPassword).to.equal(null);
+      } finally {
+        await db.User.destroy({ where: { id: user.id } });
+      }
+    });
   });
 
   describe("id-token provider", () => {
@@ -390,6 +437,63 @@ describe("Auth Providers", () => {
         console.error(errorCaught);
       }
       expect(errorCaught?.message).to.equal("ROLLBACK_FOR_TEST");
+    });
+
+    it("rejects array id and invalid types against real DB rows", async () => {
+      const victimEmail = `victim-${randomUUID()}@example.com`;
+      const attackerEmail = `attacker-${randomUUID()}@example.com`;
+      const otpToken = "654321";
+
+      const victim = await db.User.create({
+        email: victimEmail,
+        name: "Victim Admin",
+        roles: ["UserAdmin"],
+      });
+      await db.IdToken.create({
+        email: attackerEmail,
+        token: otpToken,
+        ip: "127.0.0.1",
+      });
+
+      try {
+        const arrayIdResult = await idTokenProvider.authorize!(
+          {
+            idType: "email",
+            id: [victimEmail, attackerEmail] as unknown as string,
+            token: otpToken,
+          },
+          {} as never,
+        );
+        expect(arrayIdResult).to.equal(null);
+
+        const remainingToken = await db.IdToken.findOne({
+          where: { email: attackerEmail },
+        });
+        expect(remainingToken).to.not.equal(null);
+
+        const badTypeResult = await idTokenProvider.authorize!(
+          {
+            idType: "invalid",
+            id: attackerEmail,
+            token: otpToken,
+          },
+          {} as never,
+        );
+        expect(badTypeResult).to.equal(null);
+
+        const nonStringToken = await idTokenProvider.authorize!(
+          {
+            idType: "email",
+            id: attackerEmail,
+            token: [otpToken] as unknown as string,
+          },
+          {} as never,
+        );
+        expect(nonStringToken).to.equal(null);
+      } finally {
+        await db.IdToken.destroy({ where: { email: attackerEmail } });
+        await db.User.destroy({ where: { id: victim.id } });
+      }
     });
   });
 });

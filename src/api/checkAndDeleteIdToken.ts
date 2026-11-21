@@ -11,6 +11,19 @@ export async function checkAndDeleteIdToken(
   id: string,
   token: string,
 ) {
+  // Defensively validate runtime types before querying Sequelize so non-string
+  // values (e.g., arrays compiled to `IN (...)`) cannot match unintended rows.
+  if (
+    (idType !== "phone" && idType !== "email") ||
+    typeof id !== "string" ||
+    id.length === 0 ||
+    typeof token !== "string" ||
+    token.length === 0
+  ) {
+    const idText = idType === "phone" ? "手机" : "邮箱";
+    throw generalBadRequestError(`${idText}验证码错误。`);
+  }
+
   // Run token verification and state updates in a dedicated transaction that
   // returns the validation error instead of throwing inside the transaction
   // callback. This ensures `failedAttempts` increments and expired token
@@ -43,11 +56,8 @@ export async function checkAndDeleteIdToken(
       );
     }
 
-    // Use timing-safe comparison to prevent side-channel timing attacks. Ensure
-    // token is a string to prevent Buffer.from from treating numeric inputs as
-    // allocation sizes.
-    const tokenStr = typeof token === "string" ? token : String(token ?? "");
-    const inputBuf = Buffer.from(tokenStr);
+    // Use timing-safe comparison to prevent side-channel timing attacks.
+    const inputBuf = Buffer.from(token);
     const dbTokenBuf = Buffer.from(dbToken.token);
     const isTokenValid =
       inputBuf.length === dbTokenBuf.length &&
