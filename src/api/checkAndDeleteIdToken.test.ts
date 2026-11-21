@@ -304,4 +304,53 @@ describe("checkAndDeleteIdToken", () => {
       void expect(userRecord).to.equal(null);
     });
   });
+
+  it("rejects non-string id arrays without matching other tokens", async () => {
+    await createTestIdToken("email", testEmail, testToken);
+
+    try {
+      await checkAndDeleteIdToken(
+        "email",
+        ["victim@example.com", testEmail] as unknown as string,
+        testToken,
+      );
+      expect.fail("Expected error to be thrown");
+    } catch (error: unknown) {
+      void expect((error as Error).message).to.equal("邮箱验证码错误。");
+    }
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { email: testEmail },
+    });
+    void expect(tokenRecord).to.not.equal(null);
+  });
+
+  it("rejects invalid idType and non-string token", async () => {
+    await createTestIdToken("email", testEmail, testToken);
+
+    try {
+      await checkAndDeleteIdToken(
+        "invalid" as unknown as IdType,
+        testEmail,
+        testToken,
+      );
+      expect.fail("Expected error to be thrown");
+    } catch (error: unknown) {
+      void expect((error as Error).message).to.equal("邮箱验证码错误。");
+    }
+
+    try {
+      await checkAndDeleteIdToken("email", testEmail, [
+        testToken,
+      ] as unknown as string);
+      expect.fail("Expected error to be thrown");
+    } catch (error: unknown) {
+      void expect((error as Error).message).to.equal("邮箱验证码错误。");
+    }
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { email: testEmail },
+    });
+    void expect(tokenRecord).to.not.equal(null);
+  });
 });

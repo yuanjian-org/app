@@ -12,6 +12,7 @@ import { isPasswordProhibited } from "shared/Role";
 import { whiteLabel } from "shared/WhiteLabel";
 import WeChatProvider from "./WeChatProvider";
 import YuantuSsoProvider from "./YuantuSsoProvider";
+import { LRUCache } from "lru-cache";
 
 // Precomputed bcrypt hash (cost 10) used when a user does not exist or has no
 // password set, preventing timing-based user enumeration.
@@ -20,13 +21,24 @@ const dummyPasswordHash =
 
 const passwordMaxFailedAttempts = 10;
 const passwordLockoutMs = 15 * 60 * 1000;
-const passwordFailedAttempts = new Map<
+const passwordFailedAttempts = new LRUCache<
   string,
   { count: number; firstFailedAt: number }
->();
+>({
+  max: 50000,
+  ttl: passwordLockoutMs,
+});
 
 export function clearPasswordFailedAttemptsForTest() {
   passwordFailedAttempts.clear();
+}
+
+function isValidIdType(value: unknown): value is IdType {
+  return value === "phone" || value === "email";
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0;
 }
 
 const providers: NextAuthOptions["providers"] = [
@@ -38,8 +50,20 @@ const providers: NextAuthOptions["providers"] = [
     credentials: {},
 
     async authorize(credentials) {
-      const { idType, id, password } = credentials ?? {};
-      if (!idType || !id || !password) return null;
+      // NextAuth forwards raw req.body (which can contain JSON arrays/objects
+      // or repeated form parameters). Strictly validate runtime types before
+      // passing values into Sequelize `where` clauses or lockout keys.
+      const raw = credentials as Record<string, unknown> | undefined;
+      const idType = raw?.idType;
+      const id = raw?.id;
+      const password = raw?.password;
+      if (
+        !isValidIdType(idType) ||
+        !isNonEmptyString(id) ||
+        !isNonEmptyString(password)
+      ) {
+        return null;
+      }
       const idField = idType === "phone" ? "phone" : "email";
       const rateLimitKey = `${idField}:${id}`;
       const now = Date.now();
@@ -104,10 +128,21 @@ const providers: NextAuthOptions["providers"] = [
     credentials: {},
 
     async authorize(credentials) {
-      const { idType, id, token } = credentials ?? {};
-      if (!idType || !id || !token) return null;
+      // Strictly validate runtime types to prevent Sequelize from compiling
+      // array values into `IN (...)` queries across different users/tokens.
+      const raw = credentials as Record<string, unknown> | undefined;
+      const idType = raw?.idType;
+      const id = raw?.id;
+      const token = raw?.token;
+      if (
+        !isValidIdType(idType) ||
+        !isNonEmptyString(id) ||
+        !isNonEmptyString(token)
+      ) {
+        return null;
+      }
       const idField = idType === "phone" ? "phone" : "email";
-      await checkAndDeleteIdToken(idType as IdType, id, token);
+      await checkAndDeleteIdToken(idType, id, token);
       return await sequelize.transaction(async (transaction) => {
         let u = await db.User.findOne({
           where: { [idField]: id },
