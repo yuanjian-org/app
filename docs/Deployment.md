@@ -67,11 +67,12 @@ instructions in .env.template,
    and run `sudo modprobe -r sctp` if it is currently loaded.
 
 All containers use `restart: unless-stopped`, so Docker restarts them
-automatically when they crash and after host reboots. The `death-logger`
-container records the reason of every container death (exit code, OOM status,
-and the last lines of output) in `~/app/logs/container-deaths.log`. View it with
+automatically when they crash and after host reboots. The `docker-death-logger`
+host systemd service (installed by `.github/workflows/deploy.yml`) records the
+reason of every container death (exit code, OOM status, and the last lines of
+output) in `~/app/logs/container-deaths.log`. View it with
 `sudo tail -n 200 ~/app/logs/container-deaths.log` or
-`sudo docker logs death-logger`.
+`sudo journalctl -u docker-death-logger`.
 
 For convenience of day-to-day admin operations (optional):
 
