@@ -1,7 +1,6 @@
 name: Daily Backup
 
-permissions:
-  contents: read
+permissions: {}
 
 on:
   schedule:
@@ -16,61 +15,114 @@ jobs:
       matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX) }}
 
     steps:
-    - name: Install SSH client
-      run: sudo apt-get install -y openssh-client
+      - name: Configure SSH key
+        env:
+          SSH_KEY: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          HOSTNAME: ${{ matrix.hostname }}
+          SSH_USERNAME: ${{ vars.SSH_USERNAME }}
+          SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          umask 077
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            host_key_checking="yes"
+          else
+            # Set vars.SSH_KNOWN_HOSTS to enforce strict host key checking.
+            host_key_checking="accept-new"
+          fi
+          {
+            printf 'Host %s\n' "$HOSTNAME"
+            printf '  User %s\n' "$SSH_USERNAME"
+            printf '  IdentityFile ~/.ssh/id_rsa\n'
+            printf '  IdentitiesOnly yes\n'
+            printf '  StrictHostKeyChecking %s\n' "$host_key_checking"
+          } > ~/.ssh/config
 
-    - name: Add SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ matrix.hostname }}
-        config: |
-          Host ${{ matrix.hostname }}
-            User ${{ vars.SSH_USERNAME }}
-            StrictHostKeyChecking no
+      - name: Execute Backup on Server
+        env:
+          HOSTNAME: ${{ matrix.hostname }}
+          SSH_USERNAME: ${{ vars.SSH_USERNAME }}
+          WHITE_LABELS: ${{ matrix.white_labels }}
+        run: |
+          set -euo pipefail
+          remote_cmd="bash -s -- $(printf '%q' "$WHITE_LABELS")"
+          ssh -- "${SSH_USERNAME}@${HOSTNAME}" "$remote_cmd" <<'EOF'
+          set -euo pipefail
+          shopt -s nullglob
+          umask 077
 
-    - name: Execute Backup on Server
-      run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
-          set -e
+          backup_dir="${HOME}/backups"
+          install -d -m 700 "$backup_dir"
+          retention_days=7
+          today=$(TZ=Asia/Shanghai date +%Y-%m-%d)
 
-          cd ~
-          mkdir -p backups
-          rm -rf backups/*
+          tmp_file=""
+          trap 'rm -f "${tmp_file:-}"' EXIT
 
-          for white_label in ${{ matrix.white_labels }}; do
-            env_file="app/.env.$white_label"
+          read -ra labels <<< "$1"
+          uri_re='^([a-zA-Z][a-zA-Z0-9+.-]*://[^/:@/?]+):([^@/?]*)@(.*)$'
+
+          for white_label in "${labels[@]}"; do
+            if [[ ! "$white_label" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+              echo "Invalid white_label: $white_label" >&2
+              exit 1
+            fi
+
+            if [ "$white_label" = "demo" ]; then
+              echo "Skipping demo deployment"
+              continue
+            fi
+
+            env_file="${HOME}/app/.env.${white_label}"
             [ -e "$env_file" ] || continue
 
-            # Extract DATABASE_URI and DATABASE_BACKUP_KEY
-            DATABASE_URI=$(sudo grep '^DATABASE_URI=' "$env_file" | sed -e 's/^DATABASE_URI=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
-            DATABASE_BACKUP_KEY=$(sudo grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+            unset DATABASE_URI PGPASSWORD PSQL_URI
 
-            if [ -n "$DATABASE_URI" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
-              echo "Backing up database for $white_label"
-              pg_dump "$DATABASE_URI" -F p -b -v -f backup.sql && gzip -f backup.sql
-              openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${white_label}.sql.gz.enc
-              rm -f backup.sql backup.sql.gz
-            else
-              echo "Skipping $env_file: DATABASE_URI or DATABASE_BACKUP_KEY not found."
+            DATABASE_URI=$(
+              (sudo grep '^DATABASE_URI=' "$env_file" || true) |
+                tail -n 1 |
+                sed -e 's/^DATABASE_URI=//' -e 's/\r$//' \
+                  -e "s/^'//;s/'$//" -e 's/^"//;s/"$//'
+            )
+
+            if [ -z "$DATABASE_URI" ]; then
+              echo "Skipping $env_file: DATABASE_URI not found."
+              continue
+            fi
+
+            echo "Backing up database for $white_label"
+
+            PSQL_URI="$DATABASE_URI"
+            if [[ "$DATABASE_URI" =~ $uri_re ]]; then
+              raw_pass="${BASH_REMATCH[2]}"
+              raw_pass="${raw_pass//\\/\\\\}"
+              printf -v PGPASSWORD '%b' "${raw_pass//%/\\x}"
+              export PGPASSWORD
+              PSQL_URI="${BASH_REMATCH[1]}@${BASH_REMATCH[3]}"
+            fi
+
+            # Write to a temp file in the same directory and atomically move
+            # into place so older backups are only pruned after success.
+            tmp_file=$(mktemp "${backup_dir}/.backup_${white_label}.XXXXXX")
+            out_file="${backup_dir}/backup_${white_label}_${today}.sql.gz"
+            pg_dump "$PSQL_URI" -F p -b | gzip -c > "$tmp_file"
+            mv -f "$tmp_file" "$out_file"
+            tmp_file=""
+
+            unset DATABASE_URI PGPASSWORD PSQL_URI
+
+            # Keep only the most recent 7 daily backups for this tenant.
+            existing=("${backup_dir}/backup_${white_label}_"*.sql.gz)
+            if [ "${#existing[@]}" -gt "$retention_days" ]; then
+              printf '%s\n' "${existing[@]}" |
+                sort -r |
+                tail -n "+$((retention_days + 1))" |
+                while IFS= read -r old_file; do
+                  rm -f "$old_file"
+                done
             fi
           done
-
-          tar -cvf all_backups.tar -C backups .
-          rm -rf backups
-        EOF
-
-    - name: Download Backup Archive
-      run: |
-        scp ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }}:~/all_backups.tar ./all_backups.tar
-
-    - name: Clean up remote backup archive
-      run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/all_backups.tar"
-
-    - name: Upload Backup to Artifacts
-      uses: actions/upload-artifact@v5
-      with:
-        name: database-backups-${{ matrix.host_id }}
-        path: all_backups.tar
-        retention-days: 30
+          EOF
