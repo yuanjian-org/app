@@ -23,10 +23,17 @@ RUN yarn --frozen-lockfile && yarn cache clean
 # duplicating node_modules into a second cached BuildKit layer.
 FROM deps AS builder
 WORKDIR /app
-COPY . .
+
+# Copy only Next.js build inputs so nginx/docker-compose/script edits do not
+# invalidate `yarn build`.
+COPY next.config.js next-i18next.config.js tsconfig.json build.env.* ./
+COPY public ./public
+COPY src ./src
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Lint and typecheck run once in the CI `test` job before `build`.
+ENV DOCKER_BUILD=1
 
 ARG NEXT_PUBLIC_WHITE_LABEL
 ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
@@ -41,15 +48,42 @@ RUN if [ ! -f .env ] || \
       sed -i '/I18N-MARKER/d' next.config.js; \
     fi
 
-# Move traced node_modules into a separate directory with clamped mtimes so
-# its layer digest stays identical across code-only commits and is not
-# re-uploaded on every deploy.
+# Stage runtime artifacts into `/out`, dropping duplicate `public/`, build-only
+# `*.nft.json` traces, and `.next/cache` (~680 MB) so `mode=max` GHA cache
+# exports stay small. Clamp mtimes on vendor layers (`standalone-deps`,
+# `standalone-vendor`, `static-vendor`) so unchanged layers keep identical
+# digests across code commits and white labels.
 RUN yarn build && \
-    mkdir -p /app/.next/standalone-deps && \
+    rm -rf /app/.next/standalone/public && \
+    find /app/.next/standalone -name '*.nft.json' -delete && \
+    mkdir -p \
+      /out/standalone-deps \
+      /out/standalone-vendor/.next/server/chunks \
+      /out/standalone-chunks/.next/server \
+      /out/static-vendor/chunks && \
     mv /app/.next/standalone/node_modules \
-      /app/.next/standalone-deps/node_modules && \
-    TZ=UTC find /app/.next/standalone-deps -depth \
-      -exec touch -h -t 198001010000.00 {} +
+      /out/standalone-deps/node_modules && \
+    for f in /app/.next/standalone/.next/server/chunks/vendor-*.js; do \
+      [ -e "$f" ] || continue; \
+      mv "$f" /out/standalone-vendor/.next/server/chunks/; \
+    done && \
+    mv /app/.next/standalone/.next/server/chunks \
+      /out/standalone-chunks/.next/server/chunks && \
+    mv /app/.next/standalone /out/standalone && \
+    for f in /app/.next/static/chunks/*.js; do \
+      [ -e "$f" ] || continue; \
+      mv "$f" /out/static-vendor/chunks/; \
+    done && \
+    if [ -d /app/.next/static/media ]; then \
+      mv /app/.next/static/media /out/static-vendor/media; \
+    fi && \
+    mv /app/.next/static /out/static && \
+    rm -rf /app/.next && \
+    TZ=UTC find \
+      /out/standalone-deps \
+      /out/standalone-vendor \
+      /out/static-vendor \
+      -depth -exec touch -h -t 198001010000.00 {} +
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -58,12 +92,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Set up non-root user and writable `.next` directory for prerender cache.
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    mkdir .next && \
+    chown nextjs:nodejs .next
 
 # Copy static repo files before build outputs so app code changes do not
 # invalidate these layers.
@@ -71,11 +104,17 @@ COPY --chown=nextjs:nodejs public ./public
 COPY --chown=nextjs:nodejs \
   docker-compose.*.yml nginx.*.conf docker-death-logger.sh ./
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone-deps/ ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/ ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy mtime-clamped vendor layers before app layers so unchanged vendor blobs
+# hit BuildKit cache and skip registry upload via HEAD check.
+COPY --from=builder --chown=nextjs:nodejs /out/standalone-deps/ ./
+COPY --from=builder --chown=nextjs:nodejs /out/standalone-vendor/ ./
+COPY --from=builder --chown=nextjs:nodejs /out/static-vendor/ ./.next/static/
+
+# Split remaining app outputs across three small layers so BuildKit uploads
+# them concurrently across separate TCP streams.
+COPY --from=builder --chown=nextjs:nodejs /out/standalone-chunks/ ./
+COPY --from=builder --chown=nextjs:nodejs /out/standalone/ ./
+COPY --from=builder --chown=nextjs:nodejs /out/static/ ./.next/static/
 
 USER nextjs
 
