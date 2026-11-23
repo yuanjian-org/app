@@ -21,9 +21,11 @@ import User, {
 import { UserFilter, zUserFilter } from "../../shared/UserFilter";
 import {
   defaultMentorCapacity,
+  UserPreference,
   zMentorPreference,
   zUserPreference,
 } from "../../shared/UserPreference";
+import { canAccessShudong } from "../../shared/ShudongPermissions";
 import { compareChinese } from "../../shared/strings/compareChinese";
 import { isValidChineseName } from "../../shared/strings/isValidChineseName";
 import {
@@ -611,6 +613,42 @@ export async function updateWechatUnionId(
   );
 }
 
+export async function setUserPreferenceImpl(
+  me: User,
+  userId: string,
+  preference: UserPreference,
+  transaction: Transaction,
+) {
+  const isUserAdmin = isPermitted(me.roles, "UserAdmin");
+  if (me.id !== userId && !isUserAdmin) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const user = await db.User.findByPk(userId, {
+    attributes: ["id", "roles", "menteeStatus", "preference"],
+    transaction,
+  });
+  if (!user) throw notFoundError("用户", userId);
+
+  if (!isUserAdmin && !canAccessShudong(user)) {
+    const prevSub = user.preference?.shudongSubscribeAll;
+    const nextSub = preference.shudongSubscribeAll;
+    const enablingShudongSub =
+      nextSub !== prevSub &&
+      (nextSub === "yes" || nextSub === "yesWithResponses");
+
+    const prevFreq = user.preference?.shudongNotificationFrequency;
+    const nextFreq = preference.shudongNotificationFrequency;
+    const enablingDailyDigest = nextFreq !== prevFreq && nextFreq === "daily";
+
+    if (enablingShudongSub || enablingDailyDigest) {
+      throw noPermissionError("树洞");
+    }
+  }
+
+  await user.update({ preference }, { transaction });
+}
+
 const setUserPreference = procedure
   .use(authUser())
   .input(
@@ -620,17 +658,9 @@ const setUserPreference = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { userId, preference } }) => {
-    if (me.id !== userId && !isPermitted(me.roles, "UserAdmin")) {
-      throw noPermissionError("用户", userId);
-    }
-
-    const [cnt] = await db.User.update(
-      { preference },
-      {
-        where: { id: userId },
-      },
-    );
-    if (cnt == 0) throw notFoundError("用户", userId);
+    await sequelize.transaction(async (transaction) => {
+      await setUserPreferenceImpl(me, userId, preference, transaction);
+    });
   });
 
 const setMenteeStatus = procedure
