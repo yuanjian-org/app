@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -49,6 +49,7 @@ import { appPageMaxWidth, pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
+import { ShudongEmojiBar } from "components/ShudongEmojiBar";
 import { toast } from "react-toastify";
 import Autosaver from "components/Autosaver";
 import MarkdownSupport from "components/MarkdownSupport";
@@ -106,6 +107,7 @@ export default fullPage(() => {
   } = trpcNext.shudong.listQuestions.useQuery({}, { enabled: hasAccess });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const questionInputRef = useRef<HTMLTextAreaElement>(null);
   const [questionMarkdown, setQuestionMarkdown] = useState("");
   // Questions default to anonymous (true) to lower inhibition for asking
   // questions
@@ -432,7 +434,12 @@ export default fullPage(() => {
         )}
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        initialFocusRef={questionInputRef}
+        size="lg"
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -452,35 +459,48 @@ export default fullPage(() => {
                   }}
                 />
               )}
-              <Textarea
-                placeholder={
-                  "请写下你的问题" +
-                  (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
-                }
-                value={questionMarkdown}
-                onChange={(e) => setQuestionMarkdown(e.target.value)}
-                onKeyDown={(e) => {
-                  // Keyboard shortcut for fast submission on desktop
-                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                    e.preventDefault();
-                    void handleCreateQuestion();
+              <VStack spacing={1.5} align="stretch">
+                <Textarea
+                  ref={questionInputRef}
+                  placeholder={
+                    "请写下你的问题" +
+                    (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
                   }
-                }}
-                rows={5}
-              />
-              <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-                <FormControl display="flex" alignItems="center" w="auto">
-                  <FormLabel htmlFor="anon-switch" mb="0">
-                    <T>匿名提问</T>
-                  </FormLabel>
-                  <Switch
-                    id="anon-switch"
-                    isChecked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                  value={questionMarkdown}
+                  onChange={(e) => setQuestionMarkdown(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Keyboard shortcut for fast submission on desktop
+                    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                      e.preventDefault();
+                      void handleCreateQuestion();
+                    }
+                  }}
+                  rows={5}
+                />
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  wrap="wrap"
+                  gap={2}
+                >
+                  <ShudongEmojiBar
+                    value={questionMarkdown}
+                    onChange={setQuestionMarkdown}
+                    textareaRef={questionInputRef}
                   />
-                </FormControl>
-                <MarkdownSupport fontSize="sm" />
-              </Flex>
+                  <MarkdownSupport fontSize="sm" />
+                </Flex>
+              </VStack>
+              <FormControl display="flex" alignItems="center" w="auto">
+                <FormLabel htmlFor="anon-switch" mb="0">
+                  <T>匿名提问</T>
+                </FormLabel>
+                <Switch
+                  id="anon-switch"
+                  isChecked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                />
+              </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>

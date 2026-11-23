@@ -9,6 +9,7 @@ import type { ShudongPost } from "shared/Shudong";
 import type User from "shared/User";
 
 type ShudongPostItemMod = typeof import("./ShudongPostItem");
+type ShudongIndexMod = typeof import("../pages/shudong/index");
 type AutosaveContextMod = typeof import("../AutosaveContext");
 type TrpcMod = typeof import("../trpc");
 type ThemeMod = typeof import("../theme");
@@ -23,6 +24,7 @@ const cjsRequire = createRequire(
 
 describe("ShudongPostItem", () => {
   let mod: ShudongPostItemMod;
+  let shudongIndexMod: ShudongIndexMod;
   let rtl: typeof import("@testing-library/react");
   let chakra: typeof import("@chakra-ui/react");
   let nextAuthReact: typeof import("next-auth/react");
@@ -36,11 +38,16 @@ describe("ShudongPostItem", () => {
   let cleanupJsdom: (() => void) | undefined;
   let prevCssHandler: CssHandler | undefined;
   let hadCssHandler = false;
+  let prevPngHandler: CssHandler | undefined;
+  let hadPngHandler = false;
 
+  let createPostMutateStub: sinon.SinonStub;
   let updatePostMutateStub: sinon.SinonStub;
   let getDraftQueryStub: sinon.SinonStub;
   let saveDraftMutateStub: sinon.SinonStub;
   let getResponsesUseQueryStub: sinon.SinonStub;
+  let listQuestionsUseQueryStub: sinon.SinonStub;
+  let getUserPrefUseQueryStub: sinon.SinonStub;
   let origTrpcDefaultDesc: PropertyDescriptor | undefined;
   let origTrpcNextDesc: PropertyDescriptor | undefined;
 
@@ -55,7 +62,7 @@ describe("ShudongPostItem", () => {
       mutate: (...args: unknown[]) => saveDraftMutateStub(...args),
     },
     createPost: {
-      mutate: () => Promise.resolve(),
+      mutate: (...args: unknown[]) => createPostMutateStub(...args),
     },
     deletePost: {
       mutate: () => Promise.resolve(),
@@ -72,6 +79,14 @@ describe("ShudongPostItem", () => {
     shudong: {
       getResponses: {
         useQuery: (...args: unknown[]) => getResponsesUseQueryStub(...args),
+      },
+      listQuestions: {
+        useQuery: (...args: unknown[]) => listQuestionsUseQueryStub(...args),
+      },
+    },
+    users: {
+      getUserPreference: {
+        useQuery: (...args: unknown[]) => getUserPrefUseQueryStub(...args),
       },
     },
   };
@@ -167,7 +182,8 @@ describe("ShudongPostItem", () => {
     );
   }
 
-  before(async () => {
+  before(async function () {
+    this.timeout(10000);
     // Clear any stale JSDOM globals left by earlier test files so
     // global-jsdom initializes a fresh active window on Node >= 20.
     const globalObj = globalThis as Record<string, unknown>;
@@ -196,6 +212,20 @@ describe("ShudongPostItem", () => {
       });
     }
 
+    if (typeof window.ResizeObserver !== "function") {
+      class ResizeObserverStub {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+      Object.defineProperty(window, "ResizeObserver", {
+        writable: true,
+        configurable: true,
+        value: ResizeObserverStub,
+      });
+      globalObj.ResizeObserver = ResizeObserverStub;
+    }
+
     // Evict DOM-sensitive modules cached by earlier non-JSDOM tests (such as
     // Footer.test.ts) while `document` was undefined, so react-dom (canUseDOM)
     // and Emotion (isBrowser) bind to this window and share one Chakra context.
@@ -203,11 +233,13 @@ describe("ShudongPostItem", () => {
       const normalized = key.replace(/\\/g, "/");
       if (
         normalized.includes("/node_modules/react-dom/") ||
+        normalized.includes("/node_modules/react-focus-lock/") ||
         normalized.includes("/node_modules/@testing-library/") ||
         normalized.includes("/node_modules/@chakra-ui/") ||
         normalized.includes("/node_modules/@emotion/") ||
         normalized.includes("/node_modules/framer-motion/") ||
         ((normalized.includes("/src/components/") ||
+          normalized.includes("/src/pages/shudong/") ||
           normalized.includes("/src/theme/")) &&
           !normalized.endsWith(".test.ts"))
       ) {
@@ -223,6 +255,11 @@ describe("ShudongPostItem", () => {
     hadCssHandler = Object.prototype.hasOwnProperty.call(extensions, ".css");
     prevCssHandler = extensions[".css"];
     extensions[".css"] = () => {};
+    hadPngHandler = Object.prototype.hasOwnProperty.call(extensions, ".png");
+    prevPngHandler = extensions[".png"];
+    extensions[".png"] = (moduleObj) => {
+      moduleObj.exports = { src: "/logo.png", height: 32, width: 32 };
+    };
 
     trpcMod = cjsRequire("../trpc") as TrpcMod;
     origTrpcDefaultDesc = Object.getOwnPropertyDescriptor(trpcMod, "default");
@@ -241,6 +278,7 @@ describe("ShudongPostItem", () => {
     });
 
     mod = cjsRequire("./ShudongPostItem") as ShudongPostItemMod;
+    shudongIndexMod = cjsRequire("../pages/shudong/index") as ShudongIndexMod;
     rtl = cjsRequire(
       "@testing-library/react",
     ) as typeof import("@testing-library/react");
@@ -271,11 +309,21 @@ describe("ShudongPostItem", () => {
   });
 
   beforeEach(() => {
+    createPostMutateStub = sinon.stub().resolves(makePost());
     updatePostMutateStub = sinon.stub().resolves(makePost());
     getDraftQueryStub = sinon.stub().resolves(null);
     saveDraftMutateStub = sinon.stub().resolves();
     getResponsesUseQueryStub = sinon.stub().returns({
       data: undefined,
+      refetch: sinon.stub().resolves(),
+    });
+    listQuestionsUseQueryStub = sinon.stub().returns({
+      data: [],
+      isLoading: false,
+      refetch: sinon.stub().resolves(),
+    });
+    getUserPrefUseQueryStub = sinon.stub().returns({
+      data: null,
       refetch: sinon.stub().resolves(),
     });
 
@@ -309,6 +357,11 @@ describe("ShudongPostItem", () => {
       extensions[".css"] = prevCssHandler;
     } else {
       delete extensions[".css"];
+    }
+    if (hadPngHandler) {
+      extensions[".png"] = prevPngHandler;
+    } else {
+      delete extensions[".png"];
     }
 
     if (typeof window !== "undefined") {
@@ -463,5 +516,145 @@ describe("ShudongPostItem", () => {
 
     expect(queryByLabelText("编辑帖子")).to.equal(null);
     expect(queryByLabelText("删除帖子")).to.equal(null);
+  });
+
+  it("renders emoji selector when editing a root question", async () => {
+    const flushFrame = () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+
+    const post = makePost({
+      parentId: null,
+      author: null,
+      userIsAuthor: true,
+      markdown: "请问实习",
+      anonymousName: "匿名楼主",
+    });
+
+    const { getByLabelText, getByRole } = renderPostItem(post, baseUser, {
+      isRootQuestion: true,
+    });
+
+    rtl.fireEvent.click(getByLabelText("编辑帖子"));
+
+    const textarea = getByRole("textbox") as HTMLTextAreaElement;
+    textarea.focus();
+    textarea.setSelectionRange(2, 2);
+
+    // Quick-emoji button and more-emoji popover trigger must both appear.
+    rtl.fireEvent.click(getByLabelText("插入表情 🤗"));
+    await rtl.act(async () => {
+      await flushFrame();
+    });
+    expect(textarea.value).to.equal("请问🤗实习");
+    expect(textarea.selectionStart).to.equal(4);
+
+    const moreTrigger = getByLabelText("更多表情");
+    rtl.fireEvent.click(moreTrigger);
+    await rtl.act(async () => {
+      await flushFrame();
+    });
+    expect(moreTrigger.getAttribute("aria-expanded")).to.equal("true");
+
+    rtl.fireEvent.click(getByLabelText("选择表情 🎉"));
+    await rtl.act(async () => {
+      await flushFrame();
+    });
+    expect(textarea.value).to.equal("请问🤗🎉实习");
+
+    await rtl.act(async () => {
+      rtl.fireEvent.click(getByRole("button", { name: "保存" }));
+      await Promise.resolve();
+    });
+
+    expect(updatePostMutateStub.calledOnce).to.equal(true);
+    expect(updatePostMutateStub.firstCall.args[0]).to.deep.equal({
+      postId: post.id,
+      markdown: "请问🤗🎉实习",
+      isAnonymous: true,
+    });
+  });
+
+  it("renders emoji selector in the 发表提问 modal on /shudong", async () => {
+    const flushFrame = () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+
+    const session = {
+      me: baseUser,
+      impersonated: undefined,
+      expires: "2099-01-01",
+    } as unknown as Session;
+
+    const autosaveValue = {
+      addPendingSaver: sinon.stub(),
+      removePendingSaver: sinon.stub(),
+      setPendingSaverError: sinon.stub(),
+    };
+
+    const ShudongIndexPage = shudongIndexMod.default;
+    const { getByLabelText, getByRole } = rtl.render(
+      React.createElement(
+        nextAuthReact.SessionProvider,
+        { session },
+        React.createElement(
+          chakra.ChakraProvider,
+          { theme: themeMod.default },
+          React.createElement(
+            reactI18next.I18nextProvider,
+            { i18n },
+            React.createElement(
+              autosaveContextMod.default.Provider,
+              { value: autosaveValue },
+              React.createElement(ShudongIndexPage),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    rtl.fireEvent.click(getByRole("button", { name: "提问" }));
+    await rtl.act(async () => {
+      await flushFrame();
+    });
+
+    const textarea = getByRole("textbox") as HTMLTextAreaElement;
+    rtl.fireEvent.change(textarea, { target: { value: "求助选课" } });
+    textarea.focus();
+    textarea.setSelectionRange(2, 2);
+
+    rtl.fireEvent.click(getByLabelText("插入表情 💪"));
+    await rtl.act(async () => {
+      await flushFrame();
+    });
+    expect(textarea.value).to.equal("求助💪选课");
+    expect(textarea.selectionStart).to.equal(4);
+
+    const moreTrigger = getByLabelText("更多表情");
+    rtl.fireEvent.click(moreTrigger);
+    await rtl.act(async () => {
+      await flushFrame();
+    });
+    expect(moreTrigger.getAttribute("aria-expanded")).to.equal("true");
+
+    rtl.fireEvent.click(getByLabelText("选择表情 ✨"));
+    await rtl.act(async () => {
+      await flushFrame();
+    });
+    expect(textarea.value).to.equal("求助💪✨选课");
+
+    await rtl.act(async () => {
+      rtl.fireEvent.click(getByRole("button", { name: "提交" }));
+      await Promise.resolve();
+    });
+
+    expect(createPostMutateStub.calledOnce).to.equal(true);
+    expect(createPostMutateStub.firstCall.args[0]).to.deep.equal({
+      parentId: null,
+      markdown: "求助💪✨选课",
+      isAnonymous: true,
+    });
   });
 });
