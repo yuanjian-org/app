@@ -42,6 +42,12 @@ jobs:
     - name: Install Dependencies
       run: yarn install --frozen-lockfile
 
+    - name: Lint and Typecheck
+      run: |
+        yarn lint
+        npx next typegen
+        npx tsc -p tsconfig.build.json --noEmit
+
     - name: Setup Database and Environment
       run: |
         echo "DATABASE_URI=postgres://yuanjian:password@localhost:5432/yuanjian" > .env
@@ -77,8 +83,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v5
 
+    # AWS-backed GHA runners suffer TCP Cubic collapse (~20 KB/s per stream)
+    # over the trans-Pacific link to Aliyun Hangzhou ACR. Switching the host
+    # kernel to BBR + fq and sharing host networking with Buildx avoids this.
+    - name: Enable TCP BBR congestion control
+      run: |
+        if sudo modprobe tcp_bbr 2>/dev/null; then
+          sudo sysctl -w net.core.default_qdisc=fq || true
+          sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
+        fi
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v4
+      with:
+        driver-opts: |
+          network=host
 
     - name: Log in to Docker
       run: echo "${{ secrets.DOCKER_REPO_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_REPO_USERNAME }} ${{ vars.DOCKER_REPO_URL }} --password-stdin
