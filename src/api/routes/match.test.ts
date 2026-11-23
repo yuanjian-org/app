@@ -1,7 +1,12 @@
 import { expect } from "chai";
+import { Transaction } from "sequelize";
 import db from "api/database/db";
 import sequelize from "api/database/sequelize";
-import { applyInitialSolverOutputImpl } from "./match";
+import {
+  applyInitialSolverOutputImpl,
+  createRelationalMentorships,
+} from "./match";
+import { createMentorship } from "./mentorships";
 import { v4 as uuidv4 } from "uuid";
 
 describe("match.ts", () => {
@@ -112,6 +117,135 @@ describe("match.ts", () => {
       expect(mentor2Feedback!.feedback.mentees).to.deep.equal([
         { id: mentee.id },
       ]);
+    });
+
+    it("updates existing transactional mentorship in transaction", async () => {
+      const mentee = await db.User.create(
+        {
+          id: uuidv4(),
+          email: `mentee-${uuidv4()}@example.com`,
+          name: "Test Mentee",
+          menteeStatus: "现届学子",
+        },
+        { transaction },
+      );
+
+      const mentor = await db.User.create(
+        {
+          id: uuidv4(),
+          email: `mentor-${uuidv4()}@example.com`,
+          name: "Test Mentor",
+        },
+        { transaction },
+      );
+
+      const oldEndsAt = new Date("2025-01-01T00:00:00.000Z").toISOString();
+      await createMentorship(
+        mentor.id,
+        mentee.id,
+        true,
+        oldEndsAt,
+        transaction,
+      );
+
+      await applyInitialSolverOutputImpl(
+        { output: `${mentee.id},${mentor.id}`, dryrun: false },
+        transaction,
+      );
+
+      const mentorship = await db.Mentorship.findOne({
+        where: { mentorId: mentor.id, menteeId: mentee.id },
+        transaction,
+      });
+      expect(mentorship).to.not.equal(null);
+      expect(mentorship!.transactional).to.equal(true);
+      expect(new Date(mentorship!.endsAt!).getTime()).to.be.greaterThan(
+        new Date(oldEndsAt).getTime(),
+      );
+    });
+
+    it("rejects converting relational mentorship in transaction", async () => {
+      const mentee = await db.User.create(
+        {
+          id: uuidv4(),
+          email: `mentee-${uuidv4()}@example.com`,
+          name: "Test Mentee",
+          menteeStatus: "现届学子",
+        },
+        { transaction },
+      );
+
+      const mentor = await db.User.create(
+        {
+          id: uuidv4(),
+          email: `mentor-${uuidv4()}@example.com`,
+          name: "Test Mentor",
+        },
+        { transaction },
+      );
+
+      await createMentorship(mentor.id, mentee.id, false, null, transaction);
+
+      let thrown: Error | null = null;
+      try {
+        await applyInitialSolverOutputImpl(
+          { output: `${mentee.id},${mentor.id}`, dryrun: false },
+          transaction,
+        );
+      } catch (err) {
+        thrown = err as Error;
+      }
+      expect(thrown).to.not.equal(null);
+      expect(thrown!.message).to.include("一对一导师不能转换成不定期导师");
+    });
+  });
+
+  describe("createRelationalMentorships", () => {
+    let transaction: Transaction;
+
+    beforeEach(async () => {
+      transaction = await sequelize.transaction();
+    });
+
+    afterEach(async () => {
+      await transaction.rollback();
+    });
+
+    it("upgrades transactional mentorship to relational in tx", async () => {
+      const mentee = await db.User.create(
+        {
+          id: uuidv4(),
+          email: `mentee-${uuidv4()}@example.com`,
+          name: "Test Mentee",
+          menteeStatus: "现届学子",
+        },
+        { transaction },
+      );
+
+      const mentor = await db.User.create(
+        {
+          id: uuidv4(),
+          email: `mentor-${uuidv4()}@example.com`,
+          name: "Test Mentor",
+        },
+        { transaction },
+      );
+
+      const endsAt = new Date("2025-01-01T00:00:00.000Z").toISOString();
+      await createMentorship(mentor.id, mentee.id, true, endsAt, transaction);
+
+      await createRelationalMentorships(
+        { [mentor.id]: [mentee.id] },
+        transaction,
+      );
+
+      const mentorship = await db.Mentorship.findOne({
+        where: { mentorId: mentor.id, menteeId: mentee.id },
+        transaction,
+      });
+      expect(mentorship).to.not.equal(null);
+      expect(mentorship!.transactional).to.equal(false);
+      expect(mentorship!.endsAt).to.equal(null);
     });
   });
 });
