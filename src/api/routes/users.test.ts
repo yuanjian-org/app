@@ -1385,3 +1385,107 @@ describe("isPermittedtoAccessMentee", () => {
     void expect(menteeToEndedRel).to.be.true;
   });
 });
+
+describe("setUserPreferenceImpl", () => {
+  let transaction: Transaction;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    if (transaction) await transaction.rollback();
+  });
+
+  it("blocks unauthorized users from enabling Shudong alerts", async () => {
+    const plainUser = await db.User.create(
+      {
+        email: `plain-${crypto.randomUUID()}@example.com`,
+        name: "普通用户",
+        roles: [],
+      },
+      { transaction },
+    );
+
+    for (const pref of [
+      { shudongSubscribeAll: "yes" as const },
+      { shudongSubscribeAll: "yesWithResponses" as const },
+      { shudongNotificationFrequency: "daily" as const },
+    ]) {
+      try {
+        await usersModule.setUserPreferenceImpl(
+          plainUser,
+          plainUser.id,
+          pref,
+          transaction,
+        );
+        expect.fail("Should have thrown noPermissionError");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.equal("没有权限访问树洞。");
+      }
+    }
+
+    // Updating unrelated preferences remains allowed.
+    await usersModule.setUserPreferenceImpl(
+      plainUser,
+      plainUser.id,
+      { smsDisabled: ["基础"] },
+      transaction,
+    );
+    await plainUser.reload({ transaction });
+    expect(plainUser.preference?.smsDisabled).to.deep.equal(["基础"]);
+  });
+
+  it("allows unrelated pref edits with legacy Shudong prefs", async () => {
+    const revokedUser = await db.User.create(
+      {
+        email: `revoked-${crypto.randomUUID()}@example.com`,
+        name: "已撤权用户",
+        roles: [],
+        preference: {
+          shudongSubscribeAll: "yesWithResponses",
+          shudongNotificationFrequency: "daily",
+        },
+      },
+      { transaction },
+    );
+
+    await usersModule.setUserPreferenceImpl(
+      revokedUser,
+      revokedUser.id,
+      {
+        shudongSubscribeAll: "yesWithResponses",
+        shudongNotificationFrequency: "daily",
+        emailDisabled: ["树洞"],
+      },
+      transaction,
+    );
+    await revokedUser.reload({ transaction });
+    expect(revokedUser.preference?.emailDisabled).to.deep.equal(["树洞"]);
+  });
+
+  it("allows authorized Shudong users to set Shudong prefs", async () => {
+    const mentee = await db.User.create(
+      {
+        email: `mentee-${crypto.randomUUID()}@example.com`,
+        name: "现届学子",
+        roles: ["Mentee"],
+        menteeStatus: "现届学子",
+      },
+      { transaction },
+    );
+
+    await usersModule.setUserPreferenceImpl(
+      mentee,
+      mentee.id,
+      {
+        shudongSubscribeAll: "yesWithResponses",
+        shudongNotificationFrequency: "daily",
+      },
+      transaction,
+    );
+    await mentee.reload({ transaction });
+    expect(mentee.preference?.shudongSubscribeAll).to.equal("yesWithResponses");
+    expect(mentee.preference?.shudongNotificationFrequency).to.equal("daily");
+  });
+});

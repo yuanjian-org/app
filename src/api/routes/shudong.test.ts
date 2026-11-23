@@ -169,6 +169,19 @@ describe("shudong backend routes", () => {
       const menteeOptOut = await createTestUser(["Mentee"], "现届学子", {
         shudongSubscribeAll: "no",
       });
+      const unauthorizedAutoSub = await createTestUser([], null, {
+        shudongSubscribeAll: "yesWithResponses",
+      });
+      const rejectedMenteeAutoSub = await createTestUser(["Mentee"], "面拒", {
+        shudongSubscribeAll: "yesWithResponses",
+      });
+      const mergedMentorAutoSub = await createTestUser(["Mentor"], null, {
+        shudongSubscribeAll: "yesWithResponses",
+      });
+      await db.User.update(
+        { mergedTo: mentorDefault.id },
+        { where: { id: mergedMentorAutoSub.id }, transaction },
+      );
 
       const q = await createPostImpl(
         posterMentee,
@@ -178,8 +191,9 @@ describe("shudong backend routes", () => {
         transaction,
       );
 
-      // Check subscriptions in DB: poster and yesWithResponses users should be
-      // subscribed, while "default", "yes", and "no" users are not.
+      // Check subscriptions in DB: poster and authorized yesWithResponses
+      // users should be subscribed, while unauthorized, merged, "default",
+      // "yes", and "no" users are not.
       const subs = await db.ShudongSubscription.findAll({
         where: { questionId: q.id },
         transaction,
@@ -192,6 +206,9 @@ describe("shudong backend routes", () => {
       expect(subUserIds).not.to.include(mentorDefault.id);
       expect(subUserIds).not.to.include(menteeOptIn.id);
       expect(subUserIds).not.to.include(menteeOptOut.id);
+      expect(subUserIds).not.to.include(unauthorizedAutoSub.id);
+      expect(subUserIds).not.to.include(rejectedMenteeAutoSub.id);
+      expect(subUserIds).not.to.include(mergedMentorAutoSub.id);
 
       const detail = await getQuestionImpl(
         menteeOptInResponses,

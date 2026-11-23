@@ -32,6 +32,7 @@ import {
 } from "./shudongInternal";
 import { getImpl as getGlobalConfig } from "./globalConfigs";
 import ShudongPostModel from "../database/models/ShudongPost";
+import { canAccessShudong } from "../../shared/ShudongPermissions";
 
 export const shudongDailyDigestTimezone = "Asia/Shanghai";
 export const shudongDailyDigestHour = 20;
@@ -194,14 +195,19 @@ async function notifyShudongQuestions(
 
   const subscribers = await db.User.findAll({
     where: shudongGlobalSubscriberWhere,
-    attributes: ["id", "preference"],
+    attributes: ["id", "roles", "menteeStatus", "mergedTo", "preference"],
     transaction,
   });
 
-  // Skip users who opted into daily digest, and skip users whose only new
-  // questions are authored by themselves.
+  // Skip unauthorized/merged users, daily-digest users, and users whose only
+  // new questions are authored by themselves.
   const recipientIds = subscribers
-    .filter((u) => u.preference?.shudongNotificationFrequency !== "daily")
+    .filter(
+      (u) =>
+        !u.mergedTo &&
+        canAccessShudong(u) &&
+        u.preference?.shudongNotificationFrequency !== "daily",
+    )
     .map((u) => u.id)
     .filter((id) => newQuestions.some((q) => q.authorId !== id));
   if (recipientIds.length === 0) return;
@@ -280,17 +286,22 @@ async function notifyShudongResponses(
     include: [
       {
         association: "user",
-        attributes: ["id", "preference"],
+        attributes: ["id", "roles", "menteeStatus", "mergedTo", "preference"],
       },
     ],
     transaction,
   });
 
-  // Skip daily-digest users and subscribers whose only new responses are
-  // authored by themselves. Send a single batched notify() call for all
+  // Skip users without Shudong access (e.g., revoked roles/status or merged
+  // accounts), daily-digest users, and subscribers whose only new responses
+  // are authored by themselves. Send a single batched notify() call for all
   // eligible recipients to avoid triggering AoKSend rate limits.
   const recipientIds = subscriptions
-    .filter((s) => s.user?.preference?.shudongNotificationFrequency !== "daily")
+    .filter(
+      (s) =>
+        Boolean(s.user && !s.user.mergedTo && canAccessShudong(s.user)) &&
+        s.user?.preference?.shudongNotificationFrequency !== "daily",
+    )
     .map((s) => s.userId)
     .filter((id) => newResponses.some((r) => r.authorId !== id));
   if (recipientIds.length === 0) return;
@@ -333,11 +344,20 @@ async function notifyShudongDailyDigest(
     return;
   }
 
-  const digestUsers = await db.User.findAll({
-    where: shudongDailyDigestUserWhere,
-    attributes: ["id", "name", "roles", "preference"],
-    transaction,
-  });
+  const digestUsers = (
+    await db.User.findAll({
+      where: shudongDailyDigestUserWhere,
+      attributes: [
+        "id",
+        "name",
+        "roles",
+        "menteeStatus",
+        "mergedTo",
+        "preference",
+      ],
+      transaction,
+    })
+  ).filter((u) => !u.mergedTo && canAccessShudong(u));
   if (digestUsers.length === 0) return;
 
   const newQuestions = await db.ShudongPost.findAll({

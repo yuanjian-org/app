@@ -92,10 +92,14 @@ describe("scheduledNotifications", () => {
       sinon.restore();
     });
 
-    const createTestUser = async (name: string, roles: string[] = []) => {
+    const createTestUser = async (
+      name: string,
+      roles: string[] = [],
+      menteeStatus: string | null = null,
+    ) => {
       const email = `${crypto.randomUUID()}@example.com`;
       const user = await db.User.create(
-        { email, name, roles },
+        { email, name, roles, menteeStatus },
         { transaction },
       );
       return user;
@@ -212,14 +216,30 @@ describe("scheduledNotifications", () => {
     });
 
     it("should notify shudong subscribers and delete notification", async () => {
-      const poster = await createTestUser("Poster");
-      const subscriber = await createTestUser("Subscriber");
-      const dailyDigestSub = await createTestUser("DailyDigestSub");
+      const poster = await createTestUser("Poster", ["Mentee"], "现届学子");
+      const subscriber = await createTestUser(
+        "Subscriber",
+        ["Mentee"],
+        "现届学子",
+      );
+      const dailyDigestSub = await createTestUser(
+        "DailyDigestSub",
+        ["Mentee"],
+        "现届学子",
+      );
       await dailyDigestSub.update(
         { preference: { shudongNotificationFrequency: "daily" } },
         { transaction },
       );
-      const responder = await createTestUser("Responder");
+      const revokedSub = await createTestUser("RevokedSub");
+      const rejectedMenteeSub = await createTestUser(
+        "RejectedMenteeSub",
+        ["Mentee"],
+        "面拒",
+      );
+      const mergedSub = await createTestUser("MergedSub", ["Mentor"]);
+      await mergedSub.update({ mergedTo: poster.id }, { transaction });
+      const responder = await createTestUser("Responder", ["Mentor"]);
 
       const q = await db.ShudongPost.create(
         {
@@ -230,15 +250,17 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      // Subscribe poster, another subscriber, a daily-digest subscriber, and
-      // the responder to verify eligible immediate recipients are batched into
-      // a single notify() call while daily-digest users and the responder are
-      // excluded.
+      // Subscribe eligible, daily-digest, revoked, rejected, merged, and
+      // responder users to verify only authorized immediate subscribers are
+      // notified in a single batched notify() call.
       await db.ShudongSubscription.bulkCreate(
         [
           { questionId: q.id, userId: poster.id },
           { questionId: q.id, userId: subscriber.id },
           { questionId: q.id, userId: dailyDigestSub.id },
+          { questionId: q.id, userId: revokedSub.id },
+          { questionId: q.id, userId: rejectedMenteeSub.id },
+          { questionId: q.id, userId: mergedSub.id },
           { questionId: q.id, userId: responder.id },
         ],
         { transaction },
@@ -267,6 +289,9 @@ describe("scheduledNotifications", () => {
       expect(args[0]).to.equal("树洞");
       expect(args[1]).to.have.members([poster.id, subscriber.id]);
       expect(args[1]).to.not.include(dailyDigestSub.id);
+      expect(args[1]).to.not.include(revokedSub.id);
+      expect(args[1]).to.not.include(rejectedMenteeSub.id);
+      expect(args[1]).to.not.include(mergedSub.id);
       expect(args[1]).to.not.include(responder.id);
       // Verify notification template IDs configured for Shudong response.
       expect(args[2].email).to.equal("E_114703550737");
@@ -286,16 +311,35 @@ describe("scheduledNotifications", () => {
       // A mentor with default preference is globally subscribed.
       const poster = await createTestUser("Poster", ["Mentor"]);
       const mentor = await createTestUser("Mentor", ["Mentor"]);
-      const optedIn = await createTestUser("OptedIn");
+      const optedIn = await createTestUser("OptedIn", ["Mentee"], "现届学子");
       await optedIn.update(
         { preference: { shudongSubscribeAll: "yes" } },
         { transaction },
       );
-      const optedInWithResponses = await createTestUser("OptedInWithResponses");
+      const optedInWithResponses = await createTestUser(
+        "OptedInWithResponses",
+        ["ShudongAdmin"],
+      );
       await optedInWithResponses.update(
         { preference: { shudongSubscribeAll: "yesWithResponses" } },
         { transaction },
       );
+      const unauthorizedOptIn = await createTestUser("UnauthorizedOptIn");
+      await unauthorizedOptIn.update(
+        { preference: { shudongSubscribeAll: "yesWithResponses" } },
+        { transaction },
+      );
+      const rejectedMenteeOptIn = await createTestUser(
+        "RejectedMenteeOptIn",
+        ["Mentee"],
+        "面拒",
+      );
+      await rejectedMenteeOptIn.update(
+        { preference: { shudongSubscribeAll: "yes" } },
+        { transaction },
+      );
+      const mergedMentor = await createTestUser("MergedMentor", ["Mentor"]);
+      await mergedMentor.update({ mergedTo: mentor.id }, { transaction });
       const dailyDigestMentor = await createTestUser("DailyDigestMentor", [
         "Mentor",
       ]);
@@ -330,8 +374,11 @@ describe("scheduledNotifications", () => {
       expect(args[1]).to.include(mentor.id);
       expect(args[1]).to.include(optedIn.id);
       expect(args[1]).to.include(optedInWithResponses.id);
-      // The poster and daily-digest users are excluded from immediate alerts.
+      // Poster, unauthorized, merged, and daily-digest users are excluded.
       expect(args[1]).to.not.include(poster.id);
+      expect(args[1]).to.not.include(unauthorizedOptIn.id);
+      expect(args[1]).to.not.include(rejectedMenteeOptIn.id);
+      expect(args[1]).to.not.include(mergedMentor.id);
       expect(args[1]).to.not.include(dailyDigestMentor.id);
       expect(args[1]).to.not.include(optedOut.id);
       expect(args[1]).to.not.include(other.id);
@@ -383,8 +430,8 @@ describe("scheduledNotifications", () => {
     });
 
     it("sends personalized ShudongDailyDigest after 20:00 CST", async () => {
-      const poster = await createTestUser("Poster");
-      const responder = await createTestUser("Responder");
+      const poster = await createTestUser("Poster", ["Mentee"], "现届学子");
+      const responder = await createTestUser("Responder", ["Mentor"]);
 
       const mentorDigest = await createTestUser("王导师", ["Mentor"]);
       await mentorDigest.update(
@@ -392,7 +439,11 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      const menteeDigest = await createTestUser("李同学");
+      const menteeDigest = await createTestUser(
+        "李同学",
+        ["Mentee"],
+        "现届学子",
+      );
       await menteeDigest.update(
         {
           preference: {
@@ -403,11 +454,41 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      const quietDigest = await createTestUser("QuietDigest");
+      const quietDigest = await createTestUser(
+        "QuietDigest",
+        ["Mentee"],
+        "现届学子",
+      );
       await quietDigest.update(
         {
           preference: {
             shudongSubscribeAll: "no",
+            shudongNotificationFrequency: "daily",
+          },
+        },
+        { transaction },
+      );
+
+      const unauthorizedDigest = await createTestUser("UnauthorizedDigest");
+      await unauthorizedDigest.update(
+        {
+          preference: {
+            shudongSubscribeAll: "yesWithResponses",
+            shudongNotificationFrequency: "daily",
+          },
+        },
+        { transaction },
+      );
+
+      const rejectedMenteeDigest = await createTestUser(
+        "RejectedMenteeDigest",
+        ["Mentee"],
+        "面拒",
+      );
+      await rejectedMenteeDigest.update(
+        {
+          preference: {
+            shudongSubscribeAll: "yes",
             shudongNotificationFrequency: "daily",
           },
         },
@@ -459,6 +540,7 @@ describe("scheduledNotifications", () => {
         [
           { questionId: q1.id, userId: mentorDigest.id },
           { questionId: q1.id, userId: menteeDigest.id },
+          { questionId: q1.id, userId: unauthorizedDigest.id },
         ],
         { transaction },
       );
@@ -503,6 +585,8 @@ describe("scheduledNotifications", () => {
       expect(callsByUser.has(quietDigest.id)).to.equal(false);
       expect(callsByUser.has(immediateMentor.id)).to.equal(false);
       expect(callsByUser.has(poster.id)).to.equal(false);
+      expect(callsByUser.has(unauthorizedDigest.id)).to.equal(false);
+      expect(callsByUser.has(rejectedMenteeDigest.id)).to.equal(false);
 
       const mentorCall = callsByUser.get(mentorDigest.id);
       expect(mentorCall).to.not.equal(undefined);
