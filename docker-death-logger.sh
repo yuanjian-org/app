@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# Watches Docker events and records why containers die. Runs inside the
-# `death-logger` service defined in docker-compose.*.yml, with the host's
-# Docker socket mounted. Restarting dead containers is handled separately by
-# Docker itself via each service's `restart:` policy; this script only logs.
+# Watches Docker events and records why containers die. Runs on the host via
+# the `docker-death-logger` systemd service (configured by deploy.yml).
+# Restarting dead containers is handled separately by Docker itself via each
+# service's `restart:` policy; this script only logs.
 #
 # For every death it appends to $LOG_FILE (and prints to stdout, so
-# `docker logs death-logger` works too), keeping $LOG_FILE under $MAX_LOG_SIZE
-# bytes (1 MB by default):
+# `sudo journalctl -u docker-death-logger` works too), keeping $LOG_FILE under
+# $MAX_LOG_SIZE bytes (1 MB by default):
 #   - timestamp, container name, exit code and a human-readable explanation
 #   - an "OOM" line if the kernel OOM killer killed the container
 #   - up to $TAIL_LINES lines of the container's output before it died
@@ -17,15 +17,31 @@
 # resets fields like State.OOMKilled. Event data is immune to that race.
 #
 set -u
+umask 077
 
-LOG_FILE="${LOG_FILE:-/logs/container-deaths.log}"
+LOG_FILE="${LOG_FILE:-./logs/container-deaths.log}"
 MAX_LOG_SIZE="${MAX_LOG_SIZE:-1048576}"
 TAIL_LINES="${TAIL_LINES:-50}"
 # Remembers each container's previous death time, so that the log excerpt
 # for a death doesn't repeat output from earlier crashes.
-STATE_DIR=/tmp/death-logger
+STATE_DIR="${STATE_DIR:-/run/docker-death-logger}"
 
-mkdir -p "$(dirname "$LOG_FILE")" "$STATE_DIR"
+LOG_DIR="$(dirname "$LOG_FILE")"
+mkdir -p "$LOG_DIR" "$STATE_DIR"
+chmod 700 "$LOG_DIR" "$STATE_DIR"
+if [ -f "$LOG_FILE" ]; then
+  chmod 600 "$LOG_FILE"
+fi
+
+ESC="$(printf '\033')"
+
+# Strip ANSI escape sequences and control characters (keeping tabs/newlines)
+# so attacker-controlled container output cannot forge log entries or inject
+# terminal escape codes when admins view the log file.
+sanitize_stream() {
+  LC_ALL=C sed "s|${ESC}\[[0-?]*[ -/]*[@-~]||g" \
+    | LC_ALL=C tr -d '\000-\010\013-\037\177'
+}
 
 # Keep $LOG_FILE within $MAX_LOG_SIZE bytes by trimming the oldest content.
 trim_log() {
@@ -87,6 +103,11 @@ docker events \
   --filter event=oom \
   --format "$EVENT_FMT" |
 while IFS='|' read -r action id name code nano; do
+  # Validate container ID is hex before using it in a state file path.
+  case "$id" in
+    ''|*[!0-9a-fA-F]*) continue ;;
+  esac
+
   # Split nanoseconds since epoch into "<secs>.<nanos>", the timestamp
   # format accepted by `docker logs --since/--until`.
   secs="${nano%?????????}"
@@ -110,13 +131,14 @@ while IFS='|' read -r action id name code nano; do
   fi
   echo "$event_time" > "$prev_file"
 
-  docker logs "$@" --until "$event_time" --tail "$TAIL_LINES" "$id" 2>&1 \
+  docker logs "$@" --until "$event_time" --tail "$TAIL_LINES" -- "$id" 2>&1 \
+    | sanitize_stream \
     | sed 's/^/    | /' \
     | tee -a "$LOG_FILE"
   trim_log
 done
 
 # `docker events` only exits if the Docker daemon goes away. Exit non-zero so
-# this container's own restart policy brings it back.
+# systemd's Restart=always policy brings it back.
 log "$(date -u +%Y-%m-%dT%H:%M:%SZ) docker events stream ended"
 exit 1

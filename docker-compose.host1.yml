@@ -45,14 +45,3 @@ services:
     depends_on:
       - yuantu
       - xx
-  # Records why any container dies (exit code, OOM, last output lines) in
-  # ./logs/container-deaths.log. Restarts are done by the `restart:` policies.
-  death-logger:
-    image: m.daocloud.io/docker.io/library/docker:cli
-    container_name: death-logger
-    restart: unless-stopped
-    entrypoint: ["sh", "/docker-death-logger.sh"]
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker-death-logger.sh:/docker-death-logger.sh:ro
-      - ./logs:/logs

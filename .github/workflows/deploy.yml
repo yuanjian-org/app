@@ -154,7 +154,6 @@ jobs:
             sudo docker pull ${{ env.APP_IMAGE_BASE_NAME }}:$white_label
           done
           sudo docker pull m.daocloud.io/docker.io/library/nginx:latest
-          sudo docker pull m.daocloud.io/docker.io/library/docker:cli
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           sudo docker rm temp_extract || true
@@ -166,12 +165,50 @@ jobs:
           sudo docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
           sudo docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
           sudo docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
-          # Used by the death-logger service in docker-compose.yml
-          sudo docker cp temp_extract:/app/docker-death-logger.sh ./docker-death-logger.sh
+          # Used by the host docker-death-logger systemd service
+          sudo docker cp temp_extract:/app/docker-death-logger.sh \
+            ./docker-death-logger.sh
+          sudo chown root:root ./docker-death-logger.sh
+          sudo chmod 700 ./docker-death-logger.sh
           sudo docker rm temp_extract
 
           echo ">>> Restarting Docker containers"
           sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose down --remove-orphans
+
+          echo ">>> Configuring docker-death-logger systemd service"
+          app_dir="$(pwd)"
+          unit_path='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin'
+          unit_path="${unit_path}:/sbin:/bin:/snap/bin"
+          unit_file='/etc/systemd/system/docker-death-logger.service'
+          printf '%s\n' \
+            '[Unit]' \
+            'Description=Docker container death logger' \
+            'After=network.target docker.service' \
+            'After=snap.docker.dockerd.service' \
+            '' \
+            '[Service]' \
+            'Type=simple' \
+            "WorkingDirectory=${app_dir}" \
+            'Environment="HOME=/root"' \
+            "Environment=\"PATH=${unit_path}\"" \
+            "Environment=\"LOG_FILE=${app_dir}/logs/container-deaths.log\"" \
+            'Environment="STATE_DIR=/run/docker-death-logger"' \
+            'RuntimeDirectory=docker-death-logger' \
+            'RuntimeDirectoryMode=0700' \
+            'UMask=0077' \
+            "ExecStart=/bin/sh \"${app_dir}/docker-death-logger.sh\"" \
+            'Restart=always' \
+            'RestartSec=5' \
+            '' \
+            '[Install]' \
+            'WantedBy=multi-user.target' \
+            | sudo tee "$unit_file" >/dev/null
+          sudo chown root:root "$unit_file"
+          sudo chmod 644 "$unit_file"
+          sudo systemctl daemon-reload
+          sudo systemctl enable docker-death-logger.service
+          sudo systemctl restart docker-death-logger.service
+
           sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose up -d
 
           echo ">>> Waiting for containers to boot up"
