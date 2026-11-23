@@ -140,3 +140,33 @@ GitHub's `workflow_dispatch` REST API using https://cron-job.org.
 1. Click **TEST RUN** to verify that GitHub responds with `204 No Content` and
    that a new workflow run starts in the repository's **Actions** tab, then
    click **CREATE**.
+
+## 5. Enable PostgreSQL SSL (Aliyun RDS)
+
+If the PostgreSQL database is hosted on Aliyun ApsaraDB RDS, SSL encryption is
+disabled by default. To enable it:
+
+1. In the ApsaraDB RDS console, open your PostgreSQL instance and go to
+   **Data Security** > **SSL**.
+1. Under **Certificate Source**, select **Cloud Certificate**, click
+   **Configuration** next to **Configure Database Certificate**, and select the
+   endpoint the app connects to (internal or public).
+   - A cloud certificate protects only one endpoint at a time.
+   - Enabling SSL restarts the RDS instance (~3 minutes, causing a brief
+     disconnection). Perform this during off-peak hours.
+1. Wait until the instance status returns to **Running**.
+1. Append `?sslmode=require&uselibpqcompat=true` to `DATABASE_URI` (and
+   `MEETING_DATABASE_URI` if it also uses Aliyun RDS) in `~/app/.env.*`:
+   ```
+   DATABASE_URI=postgresql://<user>:<pass>@<rds-endpoint>:<port>/<db>?sslmode=require&uselibpqcompat=true
+   ```
+   - `uselibpqcompat=true` tells `pg` (`node-postgres`) to use `libpq`
+     `sslmode=require` semantics (encrypt without verifying the Aliyun CA
+     certificate), so no CA file needs to be mounted into Docker.
+   - Note: `uselibpqcompat=true` is a `pg`-only parameter and is rejected by
+     `libpq` clients (`psql` / `pg_dump`). When connecting with `psql`, use
+     `?sslmode=require` instead.
+1. Restart the containers so the updated `.env.*` takes effect:
+   ```bash
+   sudo docker compose --project-directory ~/app up -d
+   ```
