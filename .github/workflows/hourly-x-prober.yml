@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -32,17 +34,10 @@ jobs:
 
       - name: Run Cypress prober
         uses: cypress-io/github-action@v7
+        env:
+          CYPRESS_PROBER_EMAIL: ${{ secrets.X_PROBER_EMAIL }}
+          CYPRESS_PROBER_PASSWORD: ${{ secrets.X_PROBER_PASSWORD }}
         with:
           browser: chrome
           spec: cypress/e2e/x-prober.test.ts
-          config: baseUrl=https://x.yuantuapp.com,defaultCommandTimeout=15000,pageLoadTimeout=30000,video=true
-
-      - name: Upload failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@v5
-        with:
-          name: x-prober-failure-artifacts
-          path: |
-            cypress/screenshots
-            cypress/videos
-          retention-days: 7
+          config: baseUrl=https://x.yuantuapp.com,defaultCommandTimeout=15000,pageLoadTimeout=30000,video=false,screenshotOnRunFailure=false
