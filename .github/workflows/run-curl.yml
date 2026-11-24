@@ -27,6 +27,7 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         hostname: ${{ fromJSON(needs.setup.outputs.hostnames) }}
 
