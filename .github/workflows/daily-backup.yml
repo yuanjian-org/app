@@ -12,6 +12,7 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX) }}
 
     steps:
@@ -64,6 +65,7 @@ jobs:
 
           read -ra labels <<< "$1"
           uri_re='^([a-zA-Z][a-zA-Z0-9+.-]*://[^/:@/?]+):([^@/?]*)@(.*)$'
+          failed=0
 
           for white_label in "${labels[@]}"; do
             if [[ ! "$white_label" =~ ^[a-zA-Z0-9_-]+$ ]]; then
@@ -104,11 +106,45 @@ jobs:
               PSQL_URI="${BASH_REMATCH[1]}@${BASH_REMATCH[3]}"
             fi
 
+            # Strip pg-only query params (e.g. uselibpqcompat) rejected
+            # by libpq/pg_dump.
+            if [[ "$PSQL_URI" == *\?* ]]; then
+              uri_base="${PSQL_URI%%\?*}"
+              uri_query="${PSQL_URI#*\?}"
+              filtered_params=()
+              if [ -n "$uri_query" ]; then
+                IFS='&' read -ra query_params <<< "$uri_query"
+                for param in "${query_params[@]}"; do
+                  if [ -z "$param" ] ||
+                    [ "${param%%=*}" = "uselibpqcompat" ]; then
+                    continue
+                  fi
+                  filtered_params+=("$param")
+                done
+              fi
+              if [ "${#filtered_params[@]}" -gt 0 ]; then
+                joined_query=$(
+                  IFS='&'
+                  printf '%s' "${filtered_params[*]}"
+                )
+                PSQL_URI="${uri_base}?${joined_query}"
+              else
+                PSQL_URI="$uri_base"
+              fi
+            fi
+
             # Write to a temp file in the same directory and atomically move
             # into place so older backups are only pruned after success.
             tmp_file=$(mktemp "${backup_dir}/.backup_${white_label}.XXXXXX")
             out_file="${backup_dir}/backup_${white_label}_${today}.sql.gz"
-            pg_dump "$PSQL_URI" -F p -b | gzip -c > "$tmp_file"
+            if ! pg_dump "$PSQL_URI" -F p -b | gzip -c > "$tmp_file"; then
+              echo "Failed to back up database for $white_label" >&2
+              rm -f "$tmp_file"
+              tmp_file=""
+              unset DATABASE_URI PGPASSWORD PSQL_URI
+              failed=1
+              continue
+            fi
             mv -f "$tmp_file" "$out_file"
             tmp_file=""
 
@@ -125,4 +161,6 @@ jobs:
                 done
             fi
           done
+
+          exit "$failed"
           EOF
