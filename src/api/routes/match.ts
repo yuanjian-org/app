@@ -1052,6 +1052,7 @@ async function createTransactionalMentorships(
       const m = await db.Mentorship.findOne({
         where: { mentorId, menteeId },
         attributes: ["id", "transactional"],
+        transaction,
       });
       if (!m) {
         await createMentorship(
@@ -1072,7 +1073,7 @@ async function createTransactionalMentorships(
   }
 }
 
-async function createRelationalMentorships(
+export async function createRelationalMentorships(
   mentorId2menteeIds: Record<string, string[]>,
   transaction: Transaction,
 ) {
@@ -1081,6 +1082,7 @@ async function createRelationalMentorships(
       const m = await db.Mentorship.findOne({
         where: { mentorId, menteeId },
         attributes: ["id"],
+        transaction,
       });
       if (!m) {
         await createMentorship(mentorId, menteeId, false, null, transaction);
