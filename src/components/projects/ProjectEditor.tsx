@@ -61,8 +61,6 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
 
   const [hasChanged, setHasChanged] = useState(false);
 
-  const [videoLoading, setVideoLoading] = useState(false);
-  const [refsLoading, setRefsLoading] = useState(false);
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
   const { data: orgs } = trpcNext.orgs.list.useQuery(undefined, {
@@ -275,109 +273,39 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               />
             </FormControl>
 
-            <FormControl>
-              <FormLabel>视频链接</FormLabel>
-
-              <Link
-                onClick={async () => {
-                  if (!isEdit || hasChanged) {
-                    toast.warning("请先保存项目后再上传视频");
-                    return;
-                  }
-                  setVideoLoading(true);
-                  try {
-                    const uploadToken =
-                      await trpc.users.getJinshujuXField.query({
-                        uploadTarget: "project",
-                        projectId: projectId!,
-                      });
-                    await router.push(
-                      getEmbeddedFormUrl("nhFsf1", uploadToken),
-                    );
-                  } finally {
-                    setVideoLoading(false);
-                  }
+            <ProjectMediaUploadField
+              label="视频链接"
+              formId="nhFsf1"
+              projectId={projectId}
+              hasChanged={hasChanged}
+              hasValue={!!video}
+              unsavedWarning="请先保存项目后再上传视频"
+              uploadLabel="上传视频"
+              changeLabel="更换视频"
+            >
+              <video
+                src={video}
+                controls
+                // Allow editor to download the video
+                style={{
+                  maxWidth: "500px",
+                  maxHeight: "500px",
                 }}
-              >
-                {videoLoading ? (
-                  <HStack>
-                    <Spinner size="sm" />
-                    <Text>加载中...</Text>
-                  </HStack>
-                ) : video ? (
-                  <HStack>
-                    <MdChangeCircle />
-                    <Text>更换视频</Text>
-                  </HStack>
-                ) : (
-                  <HStack>
-                    <MdCloudUpload />
-                    <Text>上传视频</Text>
-                  </HStack>
-                )}
-              </Link>
-              {video && (
-                <Box mt={componentSpacing}>
-                  <video
-                    src={video}
-                    controls
-                    // Allow editor to download the video
-                    style={{
-                      maxWidth: "500px",
-                      maxHeight: "500px",
-                    }}
-                  />
-                </Box>
-              )}
-            </FormControl>
+              />
+            </ProjectMediaUploadField>
 
-            <FormControl>
-              <FormLabel>参考材料</FormLabel>
-
-              <Link
-                onClick={async () => {
-                  if (!isEdit || hasChanged) {
-                    toast.warning("请先保存项目后再上传参考材料");
-                    return;
-                  }
-                  setRefsLoading(true);
-                  try {
-                    const uploadToken =
-                      await trpc.users.getJinshujuXField.query({
-                        uploadTarget: "project",
-                        projectId: projectId!,
-                      });
-                    await router.push(
-                      getEmbeddedFormUrl("zF1xqk", uploadToken),
-                    );
-                  } finally {
-                    setRefsLoading(false);
-                  }
-                }}
-              >
-                {refsLoading ? (
-                  <HStack>
-                    <Spinner size="sm" />
-                    <Text>加载中...</Text>
-                  </HStack>
-                ) : refs ? (
-                  <HStack>
-                    <MdChangeCircle />
-                    <Text>更换材料</Text>
-                  </HStack>
-                ) : (
-                  <HStack>
-                    <MdCloudUpload />
-                    <Text>上传材料</Text>
-                  </HStack>
-                )}
-              </Link>
-              {refs && (
-                <Box mt={componentSpacing}>
-                  <MarkdownStyler content={refs} />
-                </Box>
-              )}
-            </FormControl>
+            <ProjectMediaUploadField
+              label="参考材料"
+              formId="zF1xqk"
+              projectId={projectId}
+              hasChanged={hasChanged}
+              hasValue={!!refs}
+              unsavedWarning="请先保存项目后再上传参考材料"
+              uploadLabel="上传材料"
+              changeLabel="更换材料"
+            >
+              <MarkdownStyler content={refs} />
+            </ProjectMediaUploadField>
 
             <HStack spacing={4} mt={4}>
               <Button
@@ -396,5 +324,77 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
         </form>
       </CardBody>
     </Card>
+  );
+}
+
+/**
+ * Form field for uploading or replacing project media via an embedded Jinshuju
+ * form, showing an optional preview when media is already present.
+ */
+function ProjectMediaUploadField({
+  label,
+  formId,
+  projectId,
+  hasChanged,
+  hasValue,
+  unsavedWarning,
+  uploadLabel,
+  changeLabel,
+  children,
+}: {
+  label: string;
+  formId: string;
+  projectId?: string;
+  hasChanged: boolean;
+  hasValue: boolean;
+  unsavedWarning: string;
+  uploadLabel: string;
+  changeLabel: string;
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleUploadClick = async () => {
+    if (!projectId || hasChanged) {
+      toast.warning(unsavedWarning);
+      return;
+    }
+    setLoading(true);
+    try {
+      const uploadToken = await trpc.users.getJinshujuXField.query({
+        uploadTarget: "project",
+        projectId,
+      });
+      await router.push(getEmbeddedFormUrl(formId, uploadToken));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <FormControl>
+      <FormLabel>{label}</FormLabel>
+
+      <Link onClick={handleUploadClick}>
+        {loading ? (
+          <HStack>
+            <Spinner size="sm" />
+            <Text>加载中...</Text>
+          </HStack>
+        ) : hasValue ? (
+          <HStack>
+            <MdChangeCircle />
+            <Text>{changeLabel}</Text>
+          </HStack>
+        ) : (
+          <HStack>
+            <MdCloudUpload />
+            <Text>{uploadLabel}</Text>
+          </HStack>
+        )}
+      </Link>
+      {hasValue && <Box mt={componentSpacing}>{children}</Box>}
+    </FormControl>
   );
 }
