@@ -23,9 +23,9 @@ import { accountPageTitle } from "pages/accounts/[userId]";
 import useMe from "useMe";
 import { isValidChineseName } from "shared/strings/isValidChineseName";
 import { useSession } from "next-auth/react";
-import ContactCustomerService from "./ContactCustomerService";
 import { SmallGrayText } from "./SmallGrayText";
 import T from "components/T";
+import StudentValidationModalFooter from "./StudentValidationModalFooter";
 
 export function PearlStudentModals({
   userState,
@@ -206,24 +206,13 @@ export function PearlStudentValidationModal({
             </FormControl>
           </VStack>
         </ModalBody>
-        <ModalFooter>
-          <HStack spacing={componentSpacing} w="full">
-            <ContactCustomerService />
-
-            <Spacer />
-            <Button onClick={cancel} isDisabled={loadingSubmit}>
-              {cancelLabel}
-            </Button>
-            <Button
-              onClick={submit}
-              variant="brand"
-              isDisabled={!isInputValid}
-              isLoading={loadingSubmit}
-            >
-              <T>提交</T>
-            </Button>
-          </HStack>
-        </ModalFooter>
+        <StudentValidationModalFooter
+          cancelLabel={cancelLabel}
+          cancel={cancel}
+          submit={submit}
+          isInputValid={isInputValid}
+          loadingSubmit={loadingSubmit}
+        />
       </ModalContent>
     </ModalWithBackdrop>
   );
