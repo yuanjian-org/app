@@ -19,9 +19,22 @@ import { Op, Transaction } from "sequelize";
 import { isExamAboutToExpire } from "../../shared/exams";
 import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
 import { whereMentorshipIsOngoing } from "./mentorships";
-import { isPermittedtoAccessMentee } from "./users";
+import { isPermittedtoAccessMentee, isPermittedtoAccessMentor } from "./users";
 import { isPermitted } from "../../shared/Role";
 import User from "../../shared/User";
+
+async function isPermittedToAssignTask(
+  me: User,
+  assigneeId: string,
+  transaction?: Transaction,
+): Promise<boolean> {
+  return (
+    assigneeId === me.id ||
+    isPermitted(me.roles, "MentorshipAdmin") ||
+    (await isPermittedtoAccessMentee(me, assigneeId, transaction)) ||
+    (await isPermittedtoAccessMentor(me, assigneeId, transaction))
+  );
+}
 
 export async function listImpl(
   me: User,
@@ -63,7 +76,7 @@ const list = procedure
   .use(authUser())
   .input(
     z.object({
-      assigneeIds: z.array(z.string()),
+      assigneeIds: z.array(z.string().uuid()),
       includeTasksCreatedByMe: z.boolean(),
       includeDoneTasks: z.boolean(),
     }),
@@ -90,7 +103,7 @@ const list = procedure
  * We need this pseudo function because id and updatedAt are defined as an
  * optional field in the model but required by the zod type.
  */
-export function castTask(n: any): Task {
+export function castTask(n: unknown): Task {
   return zTask.parse(n);
 }
 
@@ -102,6 +115,10 @@ export async function createImpl(
 ): Promise<void> {
   if (markdown.trim().length === 0) {
     throw generalBadRequestError("待办事项不能为空。");
+  }
+
+  if (!(await isPermittedToAssignTask(me, assigneeId, transaction))) {
+    throw noPermissionError("待办事项");
   }
 
   // Must schedule before saving data. See the callee's comment.
@@ -122,7 +139,7 @@ const create = procedure
   .use(authUser())
   .input(
     z.object({
-      assigneeId: z.string(),
+      assigneeId: z.string().uuid(),
       markdown: z.string(),
     }),
   )
@@ -143,12 +160,27 @@ export async function updateImpl(
     throw generalBadRequestError("待办事项不能为空。");
   }
 
-  const task = await db.Task.findByPk(id, {
+  const taskRow = await db.Task.findByPk(id, {
     attributes: taskAttributes,
     include: taskInclude,
     transaction,
   });
-  checkForUpdate(castTask(task), me);
+  const task = taskRow ? castTask(taskRow) : null;
+  checkForUpdate(task, me);
+
+  if (assigneeId !== task.assignee.id) {
+    // Only the creator or a MentorshipAdmin may reassign a task to another
+    // user, and only to an assignee they are permitted to assign tasks to.
+    if (
+      task.creator?.id !== me.id &&
+      !isPermitted(me.roles, "MentorshipAdmin")
+    ) {
+      throw noPermissionError("待办事项");
+    }
+    if (!(await isPermittedToAssignTask(me, assigneeId, transaction))) {
+      throw noPermissionError("待办事项");
+    }
+  }
 
   // Must schedule before saving data. See the callee's comment.
   await scheduleNotificationBeforeSavingData("Task", assigneeId, transaction);
@@ -169,8 +201,8 @@ const update = procedure
   .use(authUser())
   .input(
     z.object({
-      id: z.number(),
-      assigneeId: z.string(),
+      id: z.number().int(),
+      assigneeId: z.string().uuid(),
       markdown: z.string(),
     }),
   )
@@ -186,12 +218,13 @@ export async function updateDoneImpl(
   done: boolean,
   transaction: Transaction,
 ): Promise<void> {
-  const task = await db.Task.findByPk(id, {
+  const taskRow = await db.Task.findByPk(id, {
     attributes: taskAttributes,
     include: taskInclude,
     transaction,
   });
-  checkForUpdate(castTask(task), me);
+  const task = taskRow ? castTask(taskRow) : null;
+  checkForUpdate(task, me);
   await db.Task.update(
     { done },
     {
@@ -205,7 +238,7 @@ const updateDone = procedure
   .use(authUser())
   .input(
     z.object({
-      id: z.number(),
+      id: z.number().int(),
       done: z.boolean(),
     }),
   )
@@ -215,14 +248,14 @@ const updateDone = procedure
     });
   });
 
-function checkForUpdate(task: Task | null, me: User) {
+function checkForUpdate(task: Task | null, me: User): asserts task is Task {
   if (!task) throw notFoundError("待办事项");
 
   if (
     isAutoTask(task) ||
     (task.assignee.id !== me.id && task.creator?.id !== me.id)
   ) {
-    throw noPermissionError("待办事项", task.assignee.id);
+    throw noPermissionError("待办事项");
   }
 }
 

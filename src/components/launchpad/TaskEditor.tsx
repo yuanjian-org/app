@@ -25,9 +25,10 @@ import invariant from "shared/invariant";
 import { getTaskMarkdown, isAutoTask, Task } from "shared/Task";
 import { componentSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
-import { useMyId } from "useMe";
+import { useMyId, useMyRoles } from "useMe";
 import T from "components/T";
 import { useTranslation } from "next-i18next/pages";
+import { isPermitted } from "shared/Role";
 
 /**
  * @param task The task to edit. If not provided, a new task will be created.
@@ -44,6 +45,8 @@ export default function TaskEditor({
   refetch: () => void;
 }) {
   const { t } = useTranslation("common");
+  const myId = useMyId();
+  const myRoles = useMyRoles();
   const [assigneeId, setAssigneeId] = useState<string | undefined>(
     task?.assignee.id,
   );
@@ -75,6 +78,10 @@ export default function TaskEditor({
   };
 
   const isAuto = task && isAutoTask(task);
+  const canReassign =
+    !task ||
+    task.creator?.id === myId ||
+    isPermitted(myRoles, "MentorshipAdmin");
 
   return (
     <ModalWithBackdrop isOpen={true} onClose={onClose} isCentered>
@@ -91,6 +98,7 @@ export default function TaskEditor({
                 getAllowedAssigneeIds={getAllowedAssigneeIds}
                 selected={assigneeId}
                 setSelected={setAssigneeId}
+                isDisabled={!canReassign}
               />
             )}
 
@@ -162,10 +170,12 @@ function AssigneeSelector({
   getAllowedAssigneeIds,
   selected,
   setSelected,
+  isDisabled,
 }: {
   getAllowedAssigneeIds: () => Promise<string[]>;
   selected: string | undefined;
   setSelected: (assigneeId: string) => void;
+  isDisabled?: boolean;
 }) {
   const myId = useMyId();
   const [allowedAssigneeIds, setAllowedAssigneeIds] = useState<string[]>([]);
@@ -211,12 +221,16 @@ function AssigneeSelector({
       <Text fontWeight="bold">
         <T>待办人：</T>
       </Text>
-      <RadioGroup onChange={setSelected} value={selected}>
+      <RadioGroup
+        onChange={setSelected}
+        value={selected}
+        isDisabled={isDisabled}
+      >
         <HStack spacing={2}>
           {users.map((user) => {
             invariant(user !== undefined, "AssigneeSelector user undefined");
             return (
-              <Radio key={user.id} value={user.id}>
+              <Radio key={user.id} value={user.id} isDisabled={isDisabled}>
                 <UserName user={user} />
               </Radio>
             );

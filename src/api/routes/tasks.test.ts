@@ -13,6 +13,7 @@ import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
 import crypto from "crypto";
 import moment from "moment";
+import { TRPCError } from "@trpc/server";
 
 describe("Tasks Route Impl", () => {
   let transaction: Transaction;
@@ -384,32 +385,131 @@ describe("Tasks Route Impl", () => {
   });
 
   describe("createImpl", () => {
-    it("should create a task successfully", async () => {
-      const assignee = await createTestUser();
-      await createImpl(testUser, assignee.id, "New Task", transaction);
+    it("should create a task for self successfully", async () => {
+      await createImpl(testUser, testUser.id, "New Task", transaction);
 
       const tasks = await db.Task.findAll({
-        where: { assigneeId: assignee.id },
+        where: { assigneeId: testUser.id },
         transaction,
       });
       expect(tasks.length).to.equal(1);
       expect(tasks[0].markdown).to.equal("New Task");
 
       const notification = await db.ScheduledNotification.findOne({
-        where: { type: "Task", subjectId: assignee.id },
+        where: { type: "Task", subjectId: testUser.id },
         transaction,
       });
       void expect(notification).to.exist;
     });
 
-    it("should fail when markdown is empty", async () => {
-      const assignee = await createTestUser();
+    it("should allow MentorshipAdmin to assign to another user", async () => {
+      const admin = await createTestUser(["MentorshipAdmin"]);
+      const assignee = await createTestUser(["Mentee"]);
+
+      await createImpl(admin, assignee.id, "Admin Task", transaction);
+
+      const tasks = await db.Task.findAll({
+        where: { assigneeId: assignee.id },
+        transaction,
+      });
+      expect(tasks.length).to.equal(1);
+      expect(tasks[0].markdown).to.equal("Admin Task");
+    });
+
+    it("should allow mentor and mentee in mentorship to assign", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const mentee = await createTestUser(["Mentee"]);
+      await db.Mentorship.create(
+        {
+          mentorId: mentor.id,
+          menteeId: mentee.id,
+          transactional: false,
+          endsAt: null,
+        },
+        { transaction },
+      );
+
+      await createImpl(mentor, mentee.id, "For Mentee", transaction);
+      await createImpl(mentee, mentor.id, "For Mentor", transaction);
+
+      const menteeTasks = await db.Task.findAll({
+        where: { assigneeId: mentee.id },
+        transaction,
+      });
+      const mentorTasks = await db.Task.findAll({
+        where: { assigneeId: mentor.id },
+        transaction,
+      });
+      expect(menteeTasks.length).to.equal(1);
+      expect(mentorTasks.length).to.equal(1);
+    });
+
+    it("should reject assigning a task to an unrelated user", async () => {
+      const victim = await createTestUser(["Mentee"]);
+
+      let caught: unknown;
       try {
-        await createImpl(testUser, assignee.id, "   ", transaction);
-        expect.fail("Should have thrown generalBadRequestError");
-      } catch (error: any) {
-        expect(error.code).to.equal("BAD_REQUEST");
+        await createImpl(testUser, victim.id, "Spam Task", transaction);
+      } catch (error) {
+        caught = error;
       }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("FORBIDDEN");
+
+      const taskCount = await db.Task.count({
+        where: { assigneeId: victim.id },
+        transaction,
+      });
+      expect(taskCount).to.equal(0);
+
+      const notifCount = await db.ScheduledNotification.count({
+        where: { type: "Task", subjectId: victim.id },
+        transaction,
+      });
+      expect(notifCount).to.equal(0);
+    });
+
+    it("should reject assigning after ended transactional pair", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const mentee = await createTestUser(["Mentee"]);
+      await db.Mentorship.create(
+        {
+          mentorId: mentor.id,
+          menteeId: mentee.id,
+          transactional: true,
+          endsAt: new Date(Date.now() - 1000000000),
+        },
+        { transaction },
+      );
+
+      let caughtMentor: unknown;
+      try {
+        await createImpl(mentor, mentee.id, "Expired Task", transaction);
+      } catch (error) {
+        caughtMentor = error;
+      }
+      expect(caughtMentor).to.be.instanceOf(TRPCError);
+      expect((caughtMentor as TRPCError).code).to.equal("FORBIDDEN");
+
+      let caughtMentee: unknown;
+      try {
+        await createImpl(mentee, mentor.id, "Expired Task", transaction);
+      } catch (error) {
+        caughtMentee = error;
+      }
+      expect(caughtMentee).to.be.instanceOf(TRPCError);
+      expect((caughtMentee as TRPCError).code).to.equal("FORBIDDEN");
+    });
+
+    it("should fail when markdown is empty", async () => {
+      let caught: unknown;
+      try {
+        await createImpl(testUser, testUser.id, "   ", transaction);
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("BAD_REQUEST");
     });
   });
 
@@ -443,7 +543,7 @@ describe("Tasks Route Impl", () => {
       void expect(notification).to.exist;
     });
 
-    it("should fail on unauthorized updates", async () => {
+    it("should fail on unauthorized updates without leaking UUID", async () => {
       const otherUser = await createTestUser();
       const task = await db.Task.create(
         {
@@ -455,6 +555,7 @@ describe("Tasks Route Impl", () => {
         { transaction },
       );
 
+      let caught: unknown;
       try {
         await updateImpl(
           testUser,
@@ -463,10 +564,168 @@ describe("Tasks Route Impl", () => {
           "Updated Task",
           transaction,
         );
-        expect.fail("Should have thrown noPermissionError");
-      } catch (error: any) {
-        expect(error.code).to.equal("FORBIDDEN");
+      } catch (error) {
+        caught = error;
       }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("FORBIDDEN");
+      expect((caught as TRPCError).message).to.not.include(otherUser.id);
+    });
+
+    it("should return NOT_FOUND for non-existent task id", async () => {
+      let caught: unknown;
+      try {
+        await updateImpl(
+          testUser,
+          999999999,
+          testUser.id,
+          "Updated Task",
+          transaction,
+        );
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("NOT_FOUND");
+    });
+
+    it("should allow assignee to edit text without reassigning", async () => {
+      const admin = await createTestUser(["MentorshipAdmin"]);
+      const task = await db.Task.create(
+        {
+          assigneeId: testUser.id,
+          creatorId: admin.id,
+          markdown: "Admin Task",
+          done: false,
+        },
+        { transaction },
+      );
+
+      await updateImpl(
+        testUser,
+        task.id,
+        testUser.id,
+        "Updated Admin Task",
+        transaction,
+      );
+
+      const updated = await db.Task.findByPk(task.id, { transaction });
+      expect(updated?.markdown).to.equal("Updated Admin Task");
+      expect(updated?.assigneeId).to.equal(testUser.id);
+    });
+
+    it("should block assignee from reassigning another's task", async () => {
+      const admin = await createTestUser(["MentorshipAdmin"]);
+      const mentee = await createTestUser(["Mentee"]);
+      await db.Mentorship.create(
+        {
+          mentorId: testUser.id,
+          menteeId: mentee.id,
+          transactional: false,
+          endsAt: null,
+        },
+        { transaction },
+      );
+
+      const task = await db.Task.create(
+        {
+          assigneeId: testUser.id,
+          creatorId: admin.id,
+          markdown: "Admin Task",
+          done: false,
+        },
+        { transaction },
+      );
+
+      let caught: unknown;
+      try {
+        await updateImpl(
+          testUser,
+          task.id,
+          mentee.id,
+          "Reassigned Task",
+          transaction,
+        );
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("FORBIDDEN");
+
+      const unchanged = await db.Task.findByPk(task.id, { transaction });
+      expect(unchanged?.assigneeId).to.equal(testUser.id);
+    });
+
+    it("should allow creator to reassign to authorized assignee", async () => {
+      const mentee = await createTestUser(["Mentee"]);
+      await db.Mentorship.create(
+        {
+          mentorId: testUser.id,
+          menteeId: mentee.id,
+          transactional: false,
+          endsAt: null,
+        },
+        { transaction },
+      );
+
+      const task = await db.Task.create(
+        {
+          assigneeId: testUser.id,
+          creatorId: testUser.id,
+          markdown: "Self Task",
+          done: false,
+        },
+        { transaction },
+      );
+
+      await updateImpl(
+        testUser,
+        task.id,
+        mentee.id,
+        "Delegated Task",
+        transaction,
+      );
+
+      const updated = await db.Task.findByPk(task.id, { transaction });
+      expect(updated?.assigneeId).to.equal(mentee.id);
+      expect(updated?.markdown).to.equal("Delegated Task");
+    });
+
+    it("should block creator from reassigning to unrelated user", async () => {
+      const victim = await createTestUser(["Mentee"]);
+      const task = await db.Task.create(
+        {
+          assigneeId: testUser.id,
+          creatorId: testUser.id,
+          markdown: "Self Task",
+          done: false,
+        },
+        { transaction },
+      );
+
+      let caught: unknown;
+      try {
+        await updateImpl(
+          testUser,
+          task.id,
+          victim.id,
+          "Hijacked Task",
+          transaction,
+        );
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("FORBIDDEN");
+
+      const unchanged = await db.Task.findByPk(task.id, { transaction });
+      expect(unchanged?.assigneeId).to.equal(testUser.id);
+
+      const notifCount = await db.ScheduledNotification.count({
+        where: { type: "Task", subjectId: victim.id },
+        transaction,
+      });
+      expect(notifCount).to.equal(0);
     });
 
     it("should fail on empty text update", async () => {
@@ -480,12 +739,14 @@ describe("Tasks Route Impl", () => {
         { transaction },
       );
 
+      let caught: unknown;
       try {
         await updateImpl(testUser, task.id, testUser.id, "   ", transaction);
-        expect.fail("Should have thrown generalBadRequestError");
-      } catch (error: any) {
-        expect(error.code).to.equal("BAD_REQUEST");
+      } catch (error) {
+        caught = error;
       }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("BAD_REQUEST");
     });
   });
 
@@ -510,7 +771,7 @@ describe("Tasks Route Impl", () => {
       void expect(updatedTask?.done).to.be.false;
     });
 
-    it("should fail when user lacks permission to toggle task", async () => {
+    it("should fail when lacking permission without leaking UUID", async () => {
       const otherUser = await createTestUser();
       const task = await db.Task.create(
         {
@@ -522,12 +783,26 @@ describe("Tasks Route Impl", () => {
         { transaction },
       );
 
+      let caught: unknown;
       try {
         await updateDoneImpl(testUser, task.id, true, transaction);
-        expect.fail("Should have thrown noPermissionError");
-      } catch (error: any) {
-        expect(error.code).to.equal("FORBIDDEN");
+      } catch (error) {
+        caught = error;
       }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("FORBIDDEN");
+      expect((caught as TRPCError).message).to.not.include(otherUser.id);
+    });
+
+    it("should return NOT_FOUND for non-existent task id", async () => {
+      let caught: unknown;
+      try {
+        await updateDoneImpl(testUser, 999999999, true, transaction);
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("NOT_FOUND");
     });
 
     it("should fail to manually toggle an auto-task", async () => {
@@ -540,12 +815,14 @@ describe("Tasks Route Impl", () => {
         { transaction },
       );
 
+      let caught: unknown;
       try {
         await updateDoneImpl(testUser, task.id, true, transaction);
-        expect.fail("Should have thrown noPermissionError");
-      } catch (error: any) {
-        expect(error.code).to.equal("FORBIDDEN");
+      } catch (error) {
+        caught = error;
       }
+      expect(caught).to.be.instanceOf(TRPCError);
+      expect((caught as TRPCError).code).to.equal("FORBIDDEN");
     });
   });
 
