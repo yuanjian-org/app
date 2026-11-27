@@ -1,0 +1,3 @@
+## 2026-07-25 - [Missing keyboard accessibility in interactive icons]
+**Learning:** Found multiple instances where non-interactive elements (like standard Icons or SVGs used as action triggers via `onClick`) lacked keyboard accessibility attributes, leaving screen reader and keyboard-only users unable to interact with them.
+**Action:** When adding `onClick` handlers to standard Chakra Icons (e.g. `<CopyIcon />`), always make sure to add `tabIndex={0}`, an `aria-label`, and `role="button"` along with an `onKeyDown` handler to support Enter and Space key activation, or simply use the built-in `<IconButton />` which provides this out-of-the-box.
